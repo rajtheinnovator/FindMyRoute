@@ -1,6 +1,7 @@
 package com.enpassio.findmyroute;
 
 import android.content.Intent;
+import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
@@ -22,6 +23,7 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.PolylineOptions;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -29,7 +31,6 @@ import org.json.JSONObject;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 
 import okhttp3.Call;
@@ -183,6 +184,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         uriBuilder.appendQueryParameter("origin", "" + fromLat + "," + fromLong);
         uriBuilder.appendQueryParameter("destination", "" + toLat + "," + toLong);
         uriBuilder.appendQueryParameter("key", "AIzaSyB-iknh4cmq7Rqtg-lZX1hN124bjxYQGeU");
+        uriBuilder.appendQueryParameter("alternatives", "true");
+        Log.v("my_tag", "urls is: " + uriBuilder.toString());
 
 
         Request request = new Request.Builder()
@@ -204,44 +207,45 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 try {
                     JSONObject jsonObject = new JSONObject(jsonData);
 
-                    List<List<HashMap<String, String>>> routes = new ArrayList<>();
-                    JSONArray jRoutes;
-                    JSONArray jLegs;
-                    JSONArray jSteps;
+                    JSONArray routeArray = jsonObject.getJSONArray("routes");
+                    JSONObject routes = routeArray.getJSONObject(0);
+                    JSONObject overviewPolylines = routes.getJSONObject("overview_polyline");
+                    String encodedString = overviewPolylines.getString("points");
+                    final List<LatLng> list = decodePoly(encodedString);
 
-                    jRoutes = jsonObject.getJSONArray("routes");
-
-                    /** Traversing all routes */
-                    for (int i = 0; i < jRoutes.length(); i++) {
-                        jLegs = ((JSONObject) jRoutes.get(i)).getJSONArray("legs");
-                        List path = new ArrayList<>();
-
-                        /** Traversing all legs */
-                        for (int j = 0; j < jLegs.length(); j++) {
-                            jSteps = ((JSONObject) jLegs.get(j)).getJSONArray("steps");
-
-                            /** Traversing all steps */
-                            for (int k = 0; k < jSteps.length(); k++) {
-                                String polyline = "";
-                                polyline = (String) ((JSONObject) ((JSONObject) jSteps.get(k)).get("polyline")).get("points");
-                                List<LatLng> list = decodePoly(polyline);
-
-                                /** Traversing all points */
-                                for (int l = 0; l < list.size(); l++) {
-                                    HashMap<String, String> hm = new HashMap<>();
-                                    hm.put("lat", Double.toString((list.get(l)).latitude));
-                                    hm.put("lng", Double.toString((list.get(l)).longitude));
-                                    path.add(hm);
-                                }
-                            }
-                            routes.add(path);
+                    //referenced from the @link: https://stackoverflow.com/a/14978267/5770629
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            m_map.addPolyline(new PolylineOptions()
+                                    .addAll(list)
+                                    .width(12)
+                                    .color(Color.parseColor("#05b1fb"))//Google maps blue color
+                                    .geodesic(true)
+                            );
                         }
+                    });
+
+
+                    for (int z = 0; z < list.size() - 1; z++) {
+                        final LatLng src = list.get(z);
+                        final LatLng dest = list.get(z + 1);
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                m_map.addPolyline(new PolylineOptions()
+                                        .add(new LatLng(src.latitude, src.longitude), new LatLng(dest.latitude, dest.longitude))
+                                        .width(2)
+                                        .color(Color.BLUE).geodesic(true));
+                            }
+                        });
                     }
 
 
                 } catch (JSONException j) {
 
                 }
+
             }
 
             @Override
