@@ -31,6 +31,7 @@ import org.json.JSONObject;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 import okhttp3.Call;
@@ -54,9 +55,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     String toLocation;
     TextView fromLocationTextView;
     TextView toLocationTextView;
-    List<Place> placeLists;
-    JSONArray jsonArray;
-    ArrayList<Place> placeArrayLists;
+
+    List<LatLng> list;
 
     GoogleMap m_map;
     boolean mapReady = false;
@@ -196,55 +196,54 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
             @Override
             public void onResponse(Call call, Response response) throws IOException {
-                /*
-                Instruct GSON to parse as a Post array (which we convert into a list)
-                */
-
-                /** code below referenced from: https://stackoverflow.com/a/29680883/5770629
-                 */
 
                 String jsonData = response.body().string();
+                JSONObject jsonObject;
+
+                List<List<HashMap<String, String>>> routes = new ArrayList<>();
+                JSONArray jRoutes;
+                JSONArray jLegs;
+                JSONArray jSteps;
+
                 try {
-                    JSONObject jsonObject = new JSONObject(jsonData);
+                    jsonObject = new JSONObject(jsonData);
 
-                    JSONArray routeArray = jsonObject.getJSONArray("routes");
-                    JSONObject routes = routeArray.getJSONObject(0);
-                    JSONObject overviewPolylines = routes.getJSONObject("overview_polyline");
-                    String encodedString = overviewPolylines.getString("points");
-                    final List<LatLng> list = decodePoly(encodedString);
-
-                    //referenced from the @link: https://stackoverflow.com/a/14978267/5770629
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            m_map.addPolyline(new PolylineOptions()
-                                    .addAll(list)
-                                    .width(12)
-                                    .color(Color.parseColor("#05b1fb"))//Google maps blue color
-                                    .geodesic(true)
-                            );
-                        }
-                    });
+                    jRoutes = jsonObject.getJSONArray("routes");
 
 
-                    for (int z = 0; z < list.size() - 1; z++) {
-                        final LatLng src = list.get(z);
-                        final LatLng dest = list.get(z + 1);
-                        runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                m_map.addPolyline(new PolylineOptions()
-                                        .add(new LatLng(src.latitude, src.longitude), new LatLng(dest.latitude, dest.longitude))
-                                        .width(2)
-                                        .color(Color.BLUE).geodesic(true));
+                    /** Traversing all routes */
+                    for (int i = 0; i < jRoutes.length(); i++) {
+                        jLegs = ((JSONObject) jRoutes.get(i)).getJSONArray("legs");
+                        List path = new ArrayList<>();
+
+                        /** Traversing all legs */
+                        for (int j = 0; j < jLegs.length(); j++) {
+                            jSteps = ((JSONObject) jLegs.get(j)).getJSONArray("steps");
+
+                            /** Traversing all steps */
+                            for (int k = 0; k < jSteps.length(); k++) {
+                                String polyline = "";
+                                polyline = (String) ((JSONObject) ((JSONObject) jSteps.get(k)).get("polyline")).get("points");
+                                list = decodePoly(polyline);
+
+                                /** Traversing all points */
+                                for (int l = 0; l < list.size(); l++) {
+                                    HashMap<String, String> hm = new HashMap<>();
+                                    hm.put("lat", Double.toString((list.get(l)).latitude));
+                                    hm.put("lng", Double.toString((list.get(l)).longitude));
+                                    path.add(hm);
+                                }
                             }
-                        });
+                            routes.add(path);
+                        }
                     }
 
-
-                } catch (JSONException j) {
-
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                } catch (Exception e) {
                 }
+                drawPolyLine(routes);
+                list.clear();
 
             }
 
@@ -254,6 +253,53 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             }
         });
 
+    }
+
+    private void drawPolyLine(List<List<HashMap<String, String>>> routes) {
+        ArrayList<LatLng> points;
+        PolylineOptions lineOptions = null;
+
+        // Traversing through all the routes
+        for (int i = 0; i < routes.size(); i++) {
+            points = new ArrayList<>();
+            lineOptions = new PolylineOptions();
+            Log.v("my_tag", "routes size is: " + routes.size());
+
+            // Fetching i-th route
+            List<HashMap<String, String>> path = routes.get(i);
+
+            // Fetching all the points in i-th route
+            for (int j = 0; j < path.size(); j++) {
+                HashMap<String, String> point = path.get(j);
+
+                Log.v("my_tag", "path size is: " + path.size());
+                double lat = Double.parseDouble(point.get("lat"));
+                double lng = Double.parseDouble(point.get("lng"));
+                LatLng position = new LatLng(lat, lng);
+
+                points.add(position);
+            }
+
+            // Adding all the points in the route to LineOptions
+            lineOptions.addAll(points);
+            lineOptions.width(10);
+            if (i == 0) {
+                lineOptions.color(Color.RED);
+            } else {
+                lineOptions.color(Color.LTGRAY);
+            }
+
+            // Drawing polyline in the Google Map for the i-th route
+            if (lineOptions != null) {
+                final PolylineOptions finalLineOptions = lineOptions;
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        m_map.addPolyline(finalLineOptions);
+                    }
+                });
+            }
+        }
     }
 
     @Override
