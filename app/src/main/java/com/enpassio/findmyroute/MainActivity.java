@@ -260,10 +260,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         PolylineOptions lineOptions = null;
 
         // Traversing through all the routes
-        for (int i = 0; i < routes.size(); i++) {
+        for (int i = routes.size() - 1; i >= 0; i--) {
             points = new ArrayList<>();
             lineOptions = new PolylineOptions();
-            Log.v("my_tag", "routes size is: " + routes.size());
 
             // Fetching i-th route
             List<HashMap<String, String>> path = routes.get(i);
@@ -271,8 +270,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             // Fetching all the points in i-th route
             for (int j = 0; j < path.size(); j++) {
                 HashMap<String, String> point = path.get(j);
-
-                Log.v("my_tag", "path size is: " + path.size());
                 double lat = Double.parseDouble(point.get("lat"));
                 double lng = Double.parseDouble(point.get("lng"));
                 LatLng position = new LatLng(lat, lng);
@@ -286,7 +283,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             if (i == 0) {
                 lineOptions.color(Color.RED);
             } else {
-                lineOptions.color(Color.LTGRAY);
+                lineOptions.color(Color.BLUE);
             }
 
             // Drawing polyline in the Google Map for the i-th route
@@ -295,7 +292,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        m_map.addPolyline(finalLineOptions);
+                        m_map.addPolyline(finalLineOptions).setGeodesic(true);
                     }
                 });
             }
