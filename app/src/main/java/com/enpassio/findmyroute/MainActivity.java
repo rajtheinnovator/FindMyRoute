@@ -23,6 +23,7 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 
 import org.json.JSONArray;
@@ -40,7 +41,7 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 
-public class MainActivity extends AppCompatActivity implements View.OnClickListener, OnMapReadyCallback {
+public class MainActivity extends AppCompatActivity implements View.OnClickListener, OnMapReadyCallback, GoogleMap.OnPolylineClickListener {
 
     private static final String TAG = MainActivity.class.getSimpleName();
     private static final String url = "https://maps.googleapis.com/maps/api/directions/json?";
@@ -55,6 +56,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     String toLocation;
     TextView fromLocationTextView;
     TextView toLocationTextView;
+    PolylineOptions lineOptions;
+    ArrayList<PolylineOptions> polylineOptionsArrayList;
 
     List<LatLng> list;
 
@@ -161,7 +164,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 m_map.addMarker(fromLocationMarker);
                 m_map.addMarker(toLocationMarker);
 
-                CameraPosition target = CameraPosition.builder().target(new LatLng(fromLat, fromLong)).zoom(18).bearing(90).tilt(60).build();
+                CameraPosition target = CameraPosition.builder().target(new LatLng(fromLat, fromLong)).zoom(18).build();
                 m_map.moveCamera(CameraUpdateFactory.newCameraPosition(target));
 
                 //TODO: handle routes using AsyncTask/Retrofit
@@ -185,7 +188,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         uriBuilder.appendQueryParameter("destination", "" + toLat + "," + toLong);
         uriBuilder.appendQueryParameter("key", "AIzaSyB-iknh4cmq7Rqtg-lZX1hN124bjxYQGeU");
         uriBuilder.appendQueryParameter("alternatives", "true");
-        Log.v("my_tag", "urls is: " + uriBuilder.toString());
 
 
         Request request = new Request.Builder()
@@ -257,12 +259,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     private void drawPolyLine(List<List<HashMap<String, String>>> routes) {
         ArrayList<LatLng> points;
-        PolylineOptions lineOptions = null;
+        polylineOptionsArrayList = new ArrayList<>();
 
         // Traversing through all the routes
         for (int i = routes.size() - 1; i >= 0; i--) {
             points = new ArrayList<>();
             lineOptions = new PolylineOptions();
+
 
             // Fetching i-th route
             List<HashMap<String, String>> path = routes.get(i);
@@ -281,14 +284,16 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             lineOptions.addAll(points);
             lineOptions.width(10);
             if (i == 0) {
-                lineOptions.color(Color.RED);
+                lineOptions.color(Color.RED).width(12);
             } else {
-                lineOptions.color(Color.BLUE);
+                lineOptions.color(Color.GRAY).width(16);
             }
+            polylineOptionsArrayList.add(lineOptions);
 
             // Drawing polyline in the Google Map for the i-th route
             if (lineOptions != null) {
                 final PolylineOptions finalLineOptions = lineOptions;
+                finalLineOptions.clickable(true);
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
@@ -303,11 +308,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public void onMapReady(GoogleMap googleMap) {
         mapReady = true;
         m_map = googleMap;
+        m_map.setOnPolylineClickListener(this);
     }
 
     /**
      * Method to decode polyline points
-     * Courtesy : https://jeffreysambells.com/2010/05/27/decoding-polylines-from-google-maps-direction-api-with-java
      */
     private List<LatLng> decodePoly(String encoded) {
 
@@ -341,5 +346,24 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
 
         return poly;
+    }
+
+    @Override
+    public void onPolylineClick(Polyline polyline) {
+        m_map.clear();
+        for (int i = 0; i < polylineOptionsArrayList.size(); i++) {
+            PolylineOptions polylineOptions = polylineOptionsArrayList.get(i);
+            List<LatLng> pointsOptions = polylineOptions.getPoints();
+            List<LatLng> pointsLine = polyline.getPoints();
+
+            if (pointsLine.equals(pointsOptions)) {
+                polylineOptions.color(Color.RED);
+                Log.v("my_tag", "pointsLine.equals(pointsOptions is: " + pointsLine.equals(pointsOptions));
+
+            } else {
+                polylineOptions.color(Color.GRAY);
+            }
+            m_map.addPolyline(polylineOptions);
+        }
     }
 }
