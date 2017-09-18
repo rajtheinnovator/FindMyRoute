@@ -66,6 +66,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     ArrayList<Integer> distanceList;
     PolylineOptions shortestPolylineOptions;
+    PolylineOptions selectedPolyLine;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -284,6 +285,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         int fasterRoute = distanceList.get(0);
         // Traversing through all the routes
+        int width = 14;
         for (int i = 0; i < routes.size(); i++) {
             points = new ArrayList<>();
             lineOptions = new PolylineOptions();
@@ -302,7 +304,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
             // Adding all the points in the route to LineOptions
             lineOptions.addAll(points);
-            lineOptions.width(12);
+            lineOptions.width(width);
+
 
             if (fasterRoute >= distanceList.get(i)) {
                 fasterRoute = distanceList.get(i);
@@ -310,7 +313,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             }
 
 
-            lineOptions.color(Color.GRAY).width(12);
+            lineOptions.color(Color.GRAY).width(width);
+            width += 4;
 
             polylineOptionsArrayList.add(lineOptions);
 
@@ -330,7 +334,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             @Override
             public void run() {
                 if (shortestPolylineOptions != null) {
-                    shortestPolylineOptions.color(Color.RED).width(16);
+                    shortestPolylineOptions.color(Color.RED);
                     m_map.addPolyline(shortestPolylineOptions);
                 }
             }
@@ -384,18 +388,19 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     public void onPolylineClick(Polyline polyline) {
         m_map.clear();
+
         for (int i = 0; i < polylineOptionsArrayList.size(); i++) {
             PolylineOptions polylineOptions = polylineOptionsArrayList.get(i);
             List<LatLng> pointsOptions = polylineOptions.getPoints();
             List<LatLng> pointsLine = polyline.getPoints();
 
             if (pointsLine.equals(pointsOptions)) {
-                polylineOptions.color(Color.RED);
-
-            } else {
-                polylineOptions.color(Color.GRAY);
+                selectedPolyLine = polylineOptions;
             }
+            polylineOptions.color(Color.GRAY);
             m_map.addPolyline(polylineOptions);
         }
+        if (selectedPolyLine != null)
+            m_map.addPolyline(selectedPolyLine).setColor(Color.RED);
     }
 }
