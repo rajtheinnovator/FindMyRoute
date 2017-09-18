@@ -163,7 +163,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
                 m_map.clear();
                 distanceList.clear();
-
                 MarkerOptions fromLocationMarker = new MarkerOptions().position(new LatLng(fromLat, fromLong)).title(fromLocation);
                 MarkerOptions toLocationMarker = new MarkerOptions().position(new LatLng(toLat, toLong)).title(toLocation);
 
@@ -173,7 +172,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 CameraPosition target = CameraPosition.builder().target(new LatLng(fromLat, fromLong)).zoom(18).build();
                 m_map.moveCamera(CameraUpdateFactory.newCameraPosition(target));
 
-                //TODO: handle routes using AsyncTask/Retrofit
+                //TODO: handle routes using AsyncTask/Retrofit/OkHttp
                 try {
                     run();
                 } catch (IOException e) {
@@ -194,7 +193,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         uriBuilder.appendQueryParameter("destination", "" + toLat + "," + toLong);
         uriBuilder.appendQueryParameter("key", "AIzaSyB-iknh4cmq7Rqtg-lZX1hN124bjxYQGeU");
         uriBuilder.appendQueryParameter("alternatives", "true");
-        
+
         Request request = new Request.Builder()
                 .url(uriBuilder.toString())
                 .build();
@@ -211,11 +210,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 JSONArray jLegs;
                 JSONArray jSteps;
 
-
                 try {
                     jsonObject = new JSONObject(jsonData);
 
                     jRoutes = jsonObject.getJSONArray("routes");
+
 
                     /** Traversing all routes */
                     for (int i = 0; i < jRoutes.length(); i++) {
@@ -261,14 +260,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         if (i == 2)
                             break;
                     }
-                    drawPolyLine(routes);
-                    list.clear();
+
                 } catch (JSONException e) {
                     e.printStackTrace();
                 } catch (Exception e) {
                 }
-
-
+                drawPolyLine(routes);
+                list.clear();
             }
 
             @Override
@@ -281,10 +279,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     private void drawPolyLine(List<List<HashMap<String, String>>> routes) {
         ArrayList<LatLng> points;
+
         polylineOptionsArrayList = new ArrayList<>();
 
+        int fasterRoute = distanceList.get(0);
         // Traversing through all the routes
-        for (int i = routes.size() - 1; i >= 0; i--) {
+        for (int i = 0; i < routes.size(); i++) {
             points = new ArrayList<>();
             lineOptions = new PolylineOptions();
             // Fetching i-th route
@@ -302,12 +302,16 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
             // Adding all the points in the route to LineOptions
             lineOptions.addAll(points);
-            lineOptions.width(10);
-            if (i == 0) {
-                lineOptions.color(Color.RED).width(12);
-            } else {
-                lineOptions.color(Color.GRAY).width(16);
+            lineOptions.width(12);
+
+            if (fasterRoute >= distanceList.get(i)) {
+                fasterRoute = distanceList.get(i);
+                shortestPolylineOptions = lineOptions;
             }
+
+
+            lineOptions.color(Color.GRAY).width(12);
+
             polylineOptionsArrayList.add(lineOptions);
 
             // Drawing polyline in the Google Map for the i-th route
@@ -322,6 +326,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 });
             }
         }
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                if (shortestPolylineOptions != null) {
+                    shortestPolylineOptions.color(Color.RED).width(16);
+                    m_map.addPolyline(shortestPolylineOptions);
+                }
+            }
+        });
     }
 
     @Override
