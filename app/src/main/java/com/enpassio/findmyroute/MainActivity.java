@@ -16,12 +16,14 @@ import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.places.AutocompleteFilter;
 import com.google.android.gms.location.places.Place;
 import com.google.android.gms.location.places.ui.PlaceAutocomplete;
+import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
@@ -172,6 +174,21 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
                 CameraPosition target = CameraPosition.builder().target(new LatLng(fromLat, fromLong)).zoom(18).build();
                 m_map.moveCamera(CameraUpdateFactory.newCameraPosition(target));
+
+                /* code for zooming camera
+                * Courtsey: https://stackoverflow.com/a/41761051/5770629
+                */
+                LatLngBounds.Builder builder = new LatLngBounds.Builder();
+                builder.include(new LatLng(fromLat, fromLong));
+                builder.include(new LatLng(toLat, toLong));
+                /**initialize the padding for map boundary*/
+                int padding = 150;
+                /**create the bounds from latlngBuilder to set into map camera*/
+                LatLngBounds bounds = builder.build();
+
+                /**create the camera with bounds and padding to set into map*/
+                final CameraUpdate cu = CameraUpdateFactory.newLatLngBounds(bounds, padding);
+                m_map.animateCamera(cu);
 
                 //TODO: handle routes using AsyncTask/Retrofit/OkHttp
                 try {
