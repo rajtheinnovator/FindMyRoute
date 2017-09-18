@@ -211,6 +211,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         uriBuilder.appendQueryParameter("destination", "" + toLat + "," + toLong);
         uriBuilder.appendQueryParameter("key", "AIzaSyB-iknh4cmq7Rqtg-lZX1hN124bjxYQGeU");
         uriBuilder.appendQueryParameter("alternatives", "true");
+        uriBuilder.appendQueryParameter("avoidHighways", "true");
+        uriBuilder.appendQueryParameter("avoidTolls", "true");
 
         Request request = new Request.Builder()
                 .url(uriBuilder.toString())
