@@ -64,10 +64,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     GoogleMap m_map;
     boolean mapReady = false;
 
+    ArrayList<Integer> distanceList;
+    PolylineOptions shortestPolylineOptions;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        distanceList = new ArrayList<>();
 
         Button fromPlaceButton = (Button) findViewById(R.id.from_place);
         Button toPlaceButton = (Button) findViewById(R.id.to_place);
@@ -157,6 +161,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 break;
             case R.id.routes_available:
 
+                m_map.clear();
+                distanceList.clear();
 
                 MarkerOptions fromLocationMarker = new MarkerOptions().position(new LatLng(fromLat, fromLong)).title(fromLocation);
                 MarkerOptions toLocationMarker = new MarkerOptions().position(new LatLng(toLat, toLong)).title(toLocation);
@@ -188,8 +194,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         uriBuilder.appendQueryParameter("destination", "" + toLat + "," + toLong);
         uriBuilder.appendQueryParameter("key", "AIzaSyB-iknh4cmq7Rqtg-lZX1hN124bjxYQGeU");
         uriBuilder.appendQueryParameter("alternatives", "true");
-
-
+        
         Request request = new Request.Builder()
                 .url(uriBuilder.toString())
                 .build();
@@ -201,25 +206,39 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
                 String jsonData = response.body().string();
                 JSONObject jsonObject;
-
                 List<List<HashMap<String, String>>> routes = new ArrayList<>();
                 JSONArray jRoutes;
                 JSONArray jLegs;
                 JSONArray jSteps;
+
 
                 try {
                     jsonObject = new JSONObject(jsonData);
 
                     jRoutes = jsonObject.getJSONArray("routes");
 
-
                     /** Traversing all routes */
                     for (int i = 0; i < jRoutes.length(); i++) {
                         jLegs = ((JSONObject) jRoutes.get(i)).getJSONArray("legs");
                         List path = new ArrayList<>();
 
+
                         /** Traversing all legs */
                         for (int j = 0; j < jLegs.length(); j++) {
+                            String legsDuration = ((JSONObject) jLegs.get(j)).getJSONObject("duration").getString("text");
+                            String[] parts = legsDuration.split(" ");
+                            String part1 = parts[0];
+                            String part2 = parts[1];
+                            int minutes = Integer.parseInt(part1);
+                            int hours = 0;
+                            if (part2.equals("hours") || part2.equals("hour")) {
+                                String part3 = parts[2];
+                                String part4 = parts[3];
+                                hours = Integer.parseInt(part1);
+                                minutes = Integer.parseInt(part3) + 60 * hours;
+                            }
+                            distanceList.add(minutes);
+
                             jSteps = ((JSONObject) jLegs.get(j)).getJSONArray("steps");
 
                             /** Traversing all steps */
@@ -238,14 +257,17 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                             }
                             routes.add(path);
                         }
+                        //choose only first three routes
+                        if (i == 2)
+                            break;
                     }
-
+                    drawPolyLine(routes);
+                    list.clear();
                 } catch (JSONException e) {
                     e.printStackTrace();
                 } catch (Exception e) {
                 }
-                drawPolyLine(routes);
-                list.clear();
+
 
             }
 
@@ -265,8 +287,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         for (int i = routes.size() - 1; i >= 0; i--) {
             points = new ArrayList<>();
             lineOptions = new PolylineOptions();
-
-
             // Fetching i-th route
             List<HashMap<String, String>> path = routes.get(i);
 
@@ -358,7 +378,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
             if (pointsLine.equals(pointsOptions)) {
                 polylineOptions.color(Color.RED);
-                Log.v("my_tag", "pointsLine.equals(pointsOptions is: " + pointsLine.equals(pointsOptions));
 
             } else {
                 polylineOptions.color(Color.GRAY);
