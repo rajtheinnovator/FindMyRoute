@@ -1,3 +1,12 @@
 <resources>
     <string name="app_name">FindMyRoute</string>
+
+    <string name="pref_fuel_checkbox_key" translatable="false">pref_fuel_checkbox</string>
+    <string name="pref_restaurant_checkbox_key" translatable="false">pref_restaurant_checkbox</string>
+    <string name="pref_restaurant_checkbox_title">Restaurants</string>
+    <string name="pref_fuel_title">Fuel stations</string>
+    <!-- Summary for Checkboxes -->
+    <string name="pref_show_true">Shown</string>
+    <string name="pref_show_false">Hidden</string>
+    <string name="action_settings">settings</string>
 </resources>

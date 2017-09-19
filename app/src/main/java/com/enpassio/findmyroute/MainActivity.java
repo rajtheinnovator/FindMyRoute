@@ -1,15 +1,18 @@
 package com.enpassio.findmyroute;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.preference.PreferenceManager;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
+import com.enpassio.findmyroute.utils.RestaurantAndFuelStations;
 import com.google.android.gms.common.GooglePlayServicesNotAvailableException;
 import com.google.android.gms.common.GooglePlayServicesRepairableException;
 import com.google.android.gms.common.api.Status;
@@ -43,7 +46,7 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 
-public class MainActivity extends AppCompatActivity implements View.OnClickListener, OnMapReadyCallback, GoogleMap.OnPolylineClickListener {
+public class MainActivity extends AppCompatActivity implements View.OnClickListener, OnMapReadyCallback, GoogleMap.OnPolylineClickListener, SharedPreferences.OnSharedPreferenceChangeListener {
 
     private static final String TAG = MainActivity.class.getSimpleName();
     private static final String url = "https://maps.googleapis.com/maps/api/directions/json?";
@@ -70,6 +73,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     PolylineOptions shortestPolylineOptions;
     PolylineOptions selectedPolyLine;
 
+    boolean fuelCheckBoxStatus;
+    boolean restaurantCheckBoxStatus;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -88,6 +94,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         MapFragment mapFragment = (MapFragment) getFragmentManager().findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
+
+        setupSharedPreferences();
     }
 
     @Override
@@ -211,8 +219,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         uriBuilder.appendQueryParameter("destination", "" + toLat + "," + toLong);
         uriBuilder.appendQueryParameter("key", "AIzaSyB-iknh4cmq7Rqtg-lZX1hN124bjxYQGeU");
         uriBuilder.appendQueryParameter("alternatives", "true");
-        uriBuilder.appendQueryParameter("avoidHighways", "true");
-        uriBuilder.appendQueryParameter("avoidTolls", "true");
 
         Request request = new Request.Builder()
                 .url(uriBuilder.toString())
@@ -419,7 +425,49 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             polylineOptions.color(Color.GRAY);
             m_map.addPolyline(polylineOptions);
         }
-        if (selectedPolyLine != null)
+        if (selectedPolyLine != null) {
             m_map.addPolyline(selectedPolyLine).setColor(Color.RED);
+            ArrayList<MarkerOptions> polylineOptionsArrayList = RestaurantAndFuelStations.getRestaurantsAndFuelStationsAlongThePath(selectedPolyLine, fuelCheckBoxStatus, restaurantCheckBoxStatus);
+            for (int p = 0; p < polylineOptionsArrayList.size(); p++) {
+                m_map.addMarker(polylineOptionsArrayList.get(p));
+                Log.v("my_tag", "latitude is: " + polylineOptionsArrayList.get(p).getPosition().longitude);
+            }
+        }
     }
+
+    private void setupSharedPreferences() {
+        // Get all of the values from shared preferences to set it up
+        // Get a reference to the default shared preferences from the PreferenceManager class
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+
+        fuelCheckBoxStatus = sharedPreferences.getBoolean(getString(R.string.pref_fuel_checkbox_key),
+                getResources().getBoolean(R.bool.pref_show_checkbox_default));
+
+        restaurantCheckBoxStatus = sharedPreferences.getBoolean(getString(R.string.pref_restaurant_checkbox_key),
+                getResources().getBoolean(R.bool.pref_show_checkbox_default));
+
+        //register the sharedPreferenceListener
+        sharedPreferences.registerOnSharedPreferenceChangeListener(this);
+
+    }
+
+    @Override
+    public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
+        if (key.contains(getString(R.string.pref_fuel_checkbox_key))) {
+            fuelCheckBoxStatus = sharedPreferences.getBoolean(getString(R.string.pref_fuel_checkbox_key),
+                    getResources().getBoolean(R.bool.pref_show_checkbox_default));
+
+        } else if (key.contains(getString(R.string.pref_restaurant_checkbox_key))) {
+            restaurantCheckBoxStatus = sharedPreferences.getBoolean(getString(R.string.pref_restaurant_checkbox_key),
+                    getResources().getBoolean(R.bool.pref_show_checkbox_default));
+        }
+    }
+
+    //un-register the sharedPreferenceListener
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        PreferenceManager.getDefaultSharedPreferences(this).unregisterOnSharedPreferenceChangeListener(this);
+    }
+
 }

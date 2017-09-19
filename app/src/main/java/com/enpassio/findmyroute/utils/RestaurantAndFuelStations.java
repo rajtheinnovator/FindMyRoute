@@ -1,0 +1,113 @@
+package com.enpassio.findmyroute.utils;
+
+import android.net.Uri;
+import android.os.Bundle;
+import android.util.Log;
+
+import com.enpassio.findmyroute.model.FuelStations;
+import com.enpassio.findmyroute.model.Restaurants;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.PolylineOptions;
+
+import org.json.JSONObject;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+
+import okhttp3.Call;
+import okhttp3.Callback;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
+
+/**
+ * Created by ABHISHEK RAJ on 9/19/2017.
+ */
+
+public class RestaurantAndFuelStations {
+
+    private static final String urlForRestaurantsAndFuelStations = "https://maps.googleapis.com/maps/api/place/nearbysearch/json?";
+    private static boolean mFuelCheckBoxStatus;
+    private static boolean mRestaurantCheckBoxStatus;
+    private static ArrayList<MarkerOptions> markerOptionsArrayList;
+
+
+    public static ArrayList<MarkerOptions> getRestaurantsAndFuelStationsAlongThePath(PolylineOptions selectedPolyLine, boolean fuelCheckBoxStatus, boolean restaurantCheckBoxStatus) {
+        mFuelCheckBoxStatus = fuelCheckBoxStatus;
+        mRestaurantCheckBoxStatus = restaurantCheckBoxStatus;
+
+        markerOptionsArrayList = new ArrayList<>();
+        Uri baseUri = Uri.parse(urlForRestaurantsAndFuelStations);
+
+        List<LatLng> pointsAlongThePath = selectedPolyLine.getPoints();
+
+        for (LatLng latLng : pointsAlongThePath) {
+
+            Uri.Builder uriBuilderGasStationAndRestaurants = baseUri.buildUpon();
+            uriBuilderGasStationAndRestaurants.appendQueryParameter("location", "" + latLng.latitude + "," + latLng.longitude);
+            uriBuilderGasStationAndRestaurants.appendQueryParameter("rankBy", "distance");
+            uriBuilderGasStationAndRestaurants.appendQueryParameter("types", "restaurant|gas_station");
+            uriBuilderGasStationAndRestaurants.appendQueryParameter("sensor", "false");
+            uriBuilderGasStationAndRestaurants.appendQueryParameter("radius", "100");
+            uriBuilderGasStationAndRestaurants.appendQueryParameter("key", "AIzaSyB-iknh4cmq7Rqtg-lZX1hN124bjxYQGeU");
+
+            Request requestGasStationsAndRestaurants = new Request.Builder()
+                    .url(uriBuilderGasStationAndRestaurants.toString())
+                    .build();
+            OkHttpClient clientGasStationsAndRestaurants = new OkHttpClient();
+            clientGasStationsAndRestaurants.newCall(requestGasStationsAndRestaurants).enqueue(new Callback() {
+                @Override
+                public void onResponse(Call call, Response response) throws IOException {
+                    String jsonData = response.body().string();
+                    JSONObject jsonObject;
+                    try {
+                        jsonObject = new JSONObject(jsonData);
+                        ArrayList<HashMap<String, Bundle>> hm_RestAndFuel = JSON_RestaurantsAndFuelStations.parseJson(jsonObject);
+                        ArrayList<FuelStations> fuelStationsArrayList = new ArrayList<>();
+                        ArrayList<Restaurants> restaurantsArrayList = new ArrayList<>();
+                        for (int k = 0; k < hm_RestAndFuel.size(); k++) {
+                            HashMap<String, Bundle> fuelStationsRestaurantsHashMap = hm_RestAndFuel.get(k);
+                            Bundle bundle = fuelStationsRestaurantsHashMap.get("fuelStationsRestaurantsBundle");
+                            fuelStationsArrayList = bundle.getParcelableArrayList("fuelStationsArrayList");
+                            restaurantsArrayList = bundle.getParcelableArrayList("restaurantsArrayList");
+                        }
+                        if (mFuelCheckBoxStatus) {
+                            for (int m = 0; m < fuelStationsArrayList.size(); m++) {
+                                FuelStations fuelStation = fuelStationsArrayList.get(m);
+                                HashMap<String, Double> hm = fuelStation.getLocation();
+                                String name = fuelStation.getNameOfFuelStation();
+                                Double lat = hm.get("");
+                                Double lng = hm.get("");
+                                MarkerOptions marker = new MarkerOptions().position(new LatLng(lat, lng)).title(name);
+                                markerOptionsArrayList.add(marker);
+                            }
+                        }
+                        if (mRestaurantCheckBoxStatus) {
+                            for (int n = 0; n < restaurantsArrayList.size(); n++) {
+                                Restaurants restaurant = restaurantsArrayList.get(n);
+                                HashMap<String, Double> hm = restaurant.getLocationOfRestaurant();
+                                String name = restaurant.getNameOfRestaurant();
+                                Double lat = hm.get("");
+                                Double lng = hm.get("");
+                                MarkerOptions marker = new MarkerOptions().position(new LatLng(lat, lng)).title(name);
+                                markerOptionsArrayList.add(marker);
+                            }
+                        }
+                    } catch (Exception e) {
+                        Log.d("Exception", e.toString());
+                    }
+
+                }
+
+                @Override
+                public void onFailure(Call call, IOException e) {
+
+                }
+            });
+        }
+        return markerOptionsArrayList;
+    }
+}
