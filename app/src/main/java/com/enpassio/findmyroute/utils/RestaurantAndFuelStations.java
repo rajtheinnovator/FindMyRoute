@@ -1,5 +1,6 @@
 package com.enpassio.findmyroute.utils;
 
+import android.app.Activity;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
@@ -31,13 +32,15 @@ public class RestaurantAndFuelStations {
     private static boolean mFuelCheckBoxStatus;
     private static boolean mRestaurantCheckBoxStatus;
     private static ArrayList<MarkerOptions> markerOptionsArrayList;
+    private static MyArrayListOfMarker myArrayListOfMarker;
 
 
-    public static ArrayList<MarkerOptions> getRestaurantsAndFuelStationsAlongThePath(ArrayList<HashMap<String, Double>> selectedPolyLinePoints, boolean fuelCheckBoxStatus, boolean restaurantCheckBoxStatus) {
+    public static void getRestaurantsAndFuelStationsAlongThePath(ArrayList<HashMap<String, Double>> selectedPolyLinePoints, boolean fuelCheckBoxStatus, boolean restaurantCheckBoxStatus, Activity activity) {
         mFuelCheckBoxStatus = fuelCheckBoxStatus;
         mRestaurantCheckBoxStatus = restaurantCheckBoxStatus;
         markerOptionsArrayList = new ArrayList<>();
         Uri baseUri = Uri.parse(urlForRestaurantsAndFuelStations);
+        myArrayListOfMarker = (MyArrayListOfMarker) activity;
 
         ArrayList<HashMap<String, Double>> pointsAlongThePath = selectedPolyLinePoints;
 
@@ -100,7 +103,9 @@ public class RestaurantAndFuelStations {
                     } catch (Exception e) {
                         Log.d("Exception", e.toString());
                     }
+                    myArrayListOfMarker.onEvent(markerOptionsArrayList);
                     Log.v("my_taggg", "onResponse markerOptionsArrayList size is: " + markerOptionsArrayList.size());
+
                 }
                 @Override
                 public void onFailure(Call call, IOException e) {
@@ -110,6 +115,9 @@ public class RestaurantAndFuelStations {
             Log.v("my_taggg", "for markerOptionsArrayList size is: " + markerOptionsArrayList.size());
         }
         Log.v("my_taggg", "return markerOptionsArrayList size is: " + markerOptionsArrayList.size());
-        return markerOptionsArrayList;
+    }
+
+    public interface MyArrayListOfMarker {
+        void onEvent(ArrayList<MarkerOptions> markerOptionsArrayList);
     }
 }

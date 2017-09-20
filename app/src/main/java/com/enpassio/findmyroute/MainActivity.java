@@ -46,7 +46,7 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 
-public class MainActivity extends AppCompatActivity implements View.OnClickListener, OnMapReadyCallback, GoogleMap.OnPolylineClickListener, SharedPreferences.OnSharedPreferenceChangeListener {
+public class MainActivity extends AppCompatActivity implements View.OnClickListener, OnMapReadyCallback, GoogleMap.OnPolylineClickListener, SharedPreferences.OnSharedPreferenceChangeListener, RestaurantAndFuelStations.MyArrayListOfMarker {
 
     private static final String TAG = MainActivity.class.getSimpleName();
     private static final String url = "https://maps.googleapis.com/maps/api/directions/json?";
@@ -455,12 +455,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
         if (selectedPolyLine != null) {
             m_map.addPolyline(selectedPolyLine).setColor(Color.RED);
-            ArrayList<MarkerOptions> markerOptionsArrayList = RestaurantAndFuelStations.getRestaurantsAndFuelStationsAlongThePath(arrayList, fuelCheckBoxStatus, restaurantCheckBoxStatus);
-            Log.v("my_tagggg", "size is: " + markerOptionsArrayList.size());
-            for (int k = 0; k < markerOptionsArrayList.size(); k++) {
-                m_map.addMarker(markerOptionsArrayList.get(k));
-                Log.v("my_tagggggg", "marker lat is: " + String.valueOf(markerOptionsArrayList.get(k).getPosition().latitude));
-            }
+            RestaurantAndFuelStations.getRestaurantsAndFuelStationsAlongThePath(arrayList, fuelCheckBoxStatus, restaurantCheckBoxStatus, MainActivity.this);
         }
     }
 
@@ -499,4 +494,21 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         PreferenceManager.getDefaultSharedPreferences(this).unregisterOnSharedPreferenceChangeListener(this);
     }
 
+    @Override
+    public void onEvent(final ArrayList<MarkerOptions> markerOptionsArrayList) {
+        if (selectedPolyLine != null) {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    m_map.addPolyline(selectedPolyLine).setColor(Color.RED);
+                    ArrayList<MarkerOptions> markerOptionsArrayListRetrieved = markerOptionsArrayList;
+                    Log.v("my_tagggg", "size is: " + markerOptionsArrayList.size());
+                    for (int k = 0; k < markerOptionsArrayListRetrieved.size(); k++) {
+                        m_map.addMarker(markerOptionsArrayListRetrieved.get(k));
+                        Log.v("my_tagggggg", "marker lat is: " + String.valueOf(markerOptionsArrayList.get(k).getPosition().latitude));
+                    }
+                }
+            });
+        }
+    }
 }
