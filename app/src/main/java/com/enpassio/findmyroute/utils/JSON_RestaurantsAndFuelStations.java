@@ -1,7 +1,6 @@
 package com.enpassio.findmyroute.utils;
 
 import android.os.Bundle;
-import android.util.Log;
 
 import com.enpassio.findmyroute.model.FuelStations;
 import com.enpassio.findmyroute.model.Restaurants;
@@ -22,7 +21,6 @@ public class JSON_RestaurantsAndFuelStations {
     static ArrayList<HashMap<String, Bundle>> hashMapArrayList = new ArrayList<>();
 
     public static ArrayList<HashMap<String, Bundle>> parseJson(JSONObject jsonObject) {
-        Log.v("my_tag", "jsonObject is " + jsonObject.toString());
         try {
             JSONArray resultsArray = jsonObject.getJSONArray("results");
             ArrayList<FuelStations> fuelStationsArrayList = new ArrayList<>();
@@ -31,8 +29,8 @@ public class JSON_RestaurantsAndFuelStations {
                 JSONObject item = resultsArray.getJSONObject(i);
                 JSONObject geometry = item.getJSONObject("geometry");
                 JSONObject location = geometry.getJSONObject("location");
-                Double lati = location.getDouble("");
-                Double longit = location.getDouble("");
+                Double lati = location.getDouble("lat");
+                Double longit = location.getDouble("lng");
                 HashMap<String, Double> latLong = new HashMap<>();
                 latLong.put("lat", lati);
                 latLong.put("lng", longit);
@@ -49,11 +47,9 @@ public class JSON_RestaurantsAndFuelStations {
                     }
                 }
                 if (typeIsFuelStation > 0) {
-                    Log.v("my_tag", "typeIsFuelStation is" + typeIsFuelStation);
                     fuelStationsArrayList.add(new FuelStations(name, latLong));
                 } else if (typeIsRestaurant > 0) {
                     restaurantsArrayList.add(new Restaurants(name, latLong));
-                    Log.v("my_tag", "typeIsRestaurant is" + typeIsRestaurant);
                 }
                 Bundle fuelStationsRestaurantsBundle = new Bundle();
                 fuelStationsRestaurantsBundle.putParcelableArrayList("fuelStationsArrayList", fuelStationsArrayList);

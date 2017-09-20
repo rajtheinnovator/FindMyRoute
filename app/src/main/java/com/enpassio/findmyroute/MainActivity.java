@@ -69,12 +69,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     GoogleMap m_map;
     boolean mapReady = false;
 
+    boolean fuelCheckBoxStatus;
+    boolean restaurantCheckBoxStatus;
+    ArrayList<ArrayList<HashMap<String, Double>>> hashMapOfAllRoutesStartAndEndLocation;
+    ArrayList<HashMap<String, Double>> arrayList;
+
     ArrayList<Integer> distanceList;
     PolylineOptions shortestPolylineOptions;
     PolylineOptions selectedPolyLine;
-
-    boolean fuelCheckBoxStatus;
-    boolean restaurantCheckBoxStatus;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -236,6 +238,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 JSONArray jLegs;
                 JSONArray jSteps;
 
+                hashMapOfAllRoutesStartAndEndLocation = new ArrayList<ArrayList<HashMap<String, Double>>>();
                 try {
                     jsonObject = new JSONObject(jsonData);
 
@@ -244,6 +247,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
                     /** Traversing all routes */
                     for (int i = 0; i < jRoutes.length(); i++) {
+                        ArrayList<HashMap<String, Double>> hashMapArrayList = new ArrayList<HashMap<String, Double>>();
                         jLegs = ((JSONObject) jRoutes.get(i)).getJSONArray("legs");
                         List path = new ArrayList<>();
 
@@ -266,11 +270,32 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
                             jSteps = ((JSONObject) jLegs.get(j)).getJSONArray("steps");
 
+                            JSONObject startLocation;
+                            JSONObject endLocation;
+
                             /** Traversing all steps */
                             for (int k = 0; k < jSteps.length(); k++) {
+
                                 String polyline = "";
                                 polyline = (String) ((JSONObject) ((JSONObject) jSteps.get(k)).get("polyline")).get("points");
                                 list = decodePoly(polyline);
+
+                                if (k == 0) {
+                                    startLocation = ((JSONObject) ((JSONObject) jSteps.get(k)).get("start_location"));
+                                    Double lat = startLocation.getDouble("lat");
+                                    Double lng = startLocation.getDouble("lng");
+                                    HashMap<String, Double> location = new HashMap<String, Double>();
+                                    location.put("lat", lat);
+                                    location.put("lng", lng);
+                                    hashMapArrayList.add(location);
+                                }
+                                endLocation = ((JSONObject) ((JSONObject) jSteps.get(k)).get("end_location"));
+                                Double lat = endLocation.getDouble("lat");
+                                Double lng = endLocation.getDouble("lng");
+                                HashMap<String, Double> location = new HashMap<String, Double>();
+                                location.put("lat", lat);
+                                location.put("lng", lng);
+                                hashMapArrayList.add(location);
 
                                 /** Traversing all points */
                                 for (int l = 0; l < list.size(); l++) {
@@ -282,6 +307,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                             }
                             routes.add(path);
                         }
+                        hashMapOfAllRoutesStartAndEndLocation.add(hashMapArrayList);
                         //choose only first three routes
                         if (i == 2)
                             break;
@@ -413,6 +439,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     public void onPolylineClick(Polyline polyline) {
         m_map.clear();
+        //   ArrayList<ArrayList<HashMap<String, Double>>>
 
         for (int i = 0; i < polylineOptionsArrayList.size(); i++) {
             PolylineOptions polylineOptions = polylineOptionsArrayList.get(i);
@@ -421,16 +448,18 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
             if (pointsLine.equals(pointsOptions)) {
                 selectedPolyLine = polylineOptions;
+                arrayList = hashMapOfAllRoutesStartAndEndLocation.get(i);
             }
             polylineOptions.color(Color.GRAY);
             m_map.addPolyline(polylineOptions);
         }
         if (selectedPolyLine != null) {
             m_map.addPolyline(selectedPolyLine).setColor(Color.RED);
-            ArrayList<MarkerOptions> polylineOptionsArrayList = RestaurantAndFuelStations.getRestaurantsAndFuelStationsAlongThePath(selectedPolyLine, fuelCheckBoxStatus, restaurantCheckBoxStatus);
-            for (int p = 0; p < polylineOptionsArrayList.size(); p++) {
-                m_map.addMarker(polylineOptionsArrayList.get(p));
-                Log.v("my_tag", "latitude is: " + polylineOptionsArrayList.get(p).getPosition().longitude);
+            ArrayList<MarkerOptions> markerOptionsArrayList = RestaurantAndFuelStations.getRestaurantsAndFuelStationsAlongThePath(arrayList, fuelCheckBoxStatus, restaurantCheckBoxStatus);
+            Log.v("my_tagggg", "size is: " + markerOptionsArrayList.size());
+            for (int k = 0; k < markerOptionsArrayList.size(); k++) {
+                m_map.addMarker(markerOptionsArrayList.get(k));
+                Log.v("my_tagggggg", "marker lat is: " + String.valueOf(markerOptionsArrayList.get(k).getPosition().latitude));
             }
         }
     }

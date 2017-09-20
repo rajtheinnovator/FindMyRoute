@@ -8,14 +8,12 @@ import com.enpassio.findmyroute.model.FuelStations;
 import com.enpassio.findmyroute.model.Restaurants;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
-import com.google.android.gms.maps.model.PolylineOptions;
 
 import org.json.JSONObject;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 
 import okhttp3.Call;
 import okhttp3.Callback;
@@ -35,19 +33,20 @@ public class RestaurantAndFuelStations {
     private static ArrayList<MarkerOptions> markerOptionsArrayList;
 
 
-    public static ArrayList<MarkerOptions> getRestaurantsAndFuelStationsAlongThePath(PolylineOptions selectedPolyLine, boolean fuelCheckBoxStatus, boolean restaurantCheckBoxStatus) {
+    public static ArrayList<MarkerOptions> getRestaurantsAndFuelStationsAlongThePath(ArrayList<HashMap<String, Double>> selectedPolyLinePoints, boolean fuelCheckBoxStatus, boolean restaurantCheckBoxStatus) {
         mFuelCheckBoxStatus = fuelCheckBoxStatus;
         mRestaurantCheckBoxStatus = restaurantCheckBoxStatus;
-
         markerOptionsArrayList = new ArrayList<>();
         Uri baseUri = Uri.parse(urlForRestaurantsAndFuelStations);
 
-        List<LatLng> pointsAlongThePath = selectedPolyLine.getPoints();
+        ArrayList<HashMap<String, Double>> pointsAlongThePath = selectedPolyLinePoints;
 
-        for (LatLng latLng : pointsAlongThePath) {
-
+        for (int i = 0; i < pointsAlongThePath.size(); i++) {
+            HashMap<String, Double> hashMap = pointsAlongThePath.get(i);
+            Double latitude = hashMap.get("lat");
+            Double longitude = hashMap.get("lng");
             Uri.Builder uriBuilderGasStationAndRestaurants = baseUri.buildUpon();
-            uriBuilderGasStationAndRestaurants.appendQueryParameter("location", "" + latLng.latitude + "," + latLng.longitude);
+            uriBuilderGasStationAndRestaurants.appendQueryParameter("location", "" + latitude + "," + longitude);
             uriBuilderGasStationAndRestaurants.appendQueryParameter("rankBy", "distance");
             uriBuilderGasStationAndRestaurants.appendQueryParameter("types", "restaurant|gas_station");
             uriBuilderGasStationAndRestaurants.appendQueryParameter("sensor", "false");
@@ -66,6 +65,7 @@ public class RestaurantAndFuelStations {
                     try {
                         jsonObject = new JSONObject(jsonData);
                         ArrayList<HashMap<String, Bundle>> hm_RestAndFuel = JSON_RestaurantsAndFuelStations.parseJson(jsonObject);
+
                         ArrayList<FuelStations> fuelStationsArrayList = new ArrayList<>();
                         ArrayList<Restaurants> restaurantsArrayList = new ArrayList<>();
                         for (int k = 0; k < hm_RestAndFuel.size(); k++) {
@@ -79,8 +79,8 @@ public class RestaurantAndFuelStations {
                                 FuelStations fuelStation = fuelStationsArrayList.get(m);
                                 HashMap<String, Double> hm = fuelStation.getLocation();
                                 String name = fuelStation.getNameOfFuelStation();
-                                Double lat = hm.get("");
-                                Double lng = hm.get("");
+                                Double lat = hm.get("lat");
+                                Double lng = hm.get("lng");
                                 MarkerOptions marker = new MarkerOptions().position(new LatLng(lat, lng)).title(name);
                                 markerOptionsArrayList.add(marker);
                             }
@@ -90,24 +90,26 @@ public class RestaurantAndFuelStations {
                                 Restaurants restaurant = restaurantsArrayList.get(n);
                                 HashMap<String, Double> hm = restaurant.getLocationOfRestaurant();
                                 String name = restaurant.getNameOfRestaurant();
-                                Double lat = hm.get("");
-                                Double lng = hm.get("");
+                                Double lat = hm.get("lat");
+                                Double lng = hm.get("lng");
                                 MarkerOptions marker = new MarkerOptions().position(new LatLng(lat, lng)).title(name);
                                 markerOptionsArrayList.add(marker);
                             }
                         }
+                        Log.v("my_taggg", "try markerOptionsArrayList size is: " + markerOptionsArrayList.size());
                     } catch (Exception e) {
                         Log.d("Exception", e.toString());
                     }
-
+                    Log.v("my_taggg", "onResponse markerOptionsArrayList size is: " + markerOptionsArrayList.size());
                 }
-
                 @Override
                 public void onFailure(Call call, IOException e) {
 
                 }
             });
+            Log.v("my_taggg", "for markerOptionsArrayList size is: " + markerOptionsArrayList.size());
         }
+        Log.v("my_taggg", "return markerOptionsArrayList size is: " + markerOptionsArrayList.size());
         return markerOptionsArrayList;
     }
 }
