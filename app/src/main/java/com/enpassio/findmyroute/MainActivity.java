@@ -408,6 +408,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         mapReady = true;
         m_map = googleMap;
         m_map.setOnPolylineClickListener(this);
+        CameraPosition target = CameraPosition.builder().target(new LatLng(21.146633, 79.088860)).zoom(4).build();
+        m_map.moveCamera(CameraUpdateFactory.newCameraPosition(target));
     }
 
     /**
