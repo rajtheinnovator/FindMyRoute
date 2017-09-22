@@ -7,6 +7,7 @@ import android.util.Log;
 
 import com.enpassio.findmyroute.model.FuelStations;
 import com.enpassio.findmyroute.model.Restaurants;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 
@@ -33,18 +34,20 @@ public class RestaurantAndFuelStations {
     private static boolean mRestaurantCheckBoxStatus;
     private static ArrayList<MarkerOptions> markerOptionsArrayList;
     private static MyArrayListOfMarker myArrayListOfMarker;
+    private static int i;
 
 
-    public static void getRestaurantsAndFuelStationsAlongThePath(ArrayList<HashMap<String, Double>> selectedPolyLinePoints, boolean fuelCheckBoxStatus, boolean restaurantCheckBoxStatus, Activity activity) {
+    public static void getRestaurantsAndFuelStationsAlongThePath(ArrayList<HashMap<String, Double>> selectedPolyLinePoints, boolean fuelCheckBoxStatus, boolean restaurantCheckBoxStatus, Activity activity, final int idOfSelectedPolyIlne) {
         mFuelCheckBoxStatus = fuelCheckBoxStatus;
         mRestaurantCheckBoxStatus = restaurantCheckBoxStatus;
         markerOptionsArrayList = new ArrayList<>();
+        markerOptionsArrayList.clear();
         Uri baseUri = Uri.parse(urlForRestaurantsAndFuelStations);
         myArrayListOfMarker = (MyArrayListOfMarker) activity;
 
-        ArrayList<HashMap<String, Double>> pointsAlongThePath = selectedPolyLinePoints;
+        final ArrayList<HashMap<String, Double>> pointsAlongThePath = selectedPolyLinePoints;
 
-        for (int i = 0; i < pointsAlongThePath.size(); i++) {
+        for (i = 0; i < pointsAlongThePath.size(); i++) {
             HashMap<String, Double> hashMap = pointsAlongThePath.get(i);
             Double latitude = hashMap.get("lat");
             Double longitude = hashMap.get("lng");
@@ -53,7 +56,7 @@ public class RestaurantAndFuelStations {
             uriBuilderGasStationAndRestaurants.appendQueryParameter("rankBy", "distance");
             uriBuilderGasStationAndRestaurants.appendQueryParameter("types", "restaurant|gas_station");
             uriBuilderGasStationAndRestaurants.appendQueryParameter("sensor", "false");
-            uriBuilderGasStationAndRestaurants.appendQueryParameter("radius", "100");
+            uriBuilderGasStationAndRestaurants.appendQueryParameter("radius", "50");
             uriBuilderGasStationAndRestaurants.appendQueryParameter("key", "AIzaSyB-iknh4cmq7Rqtg-lZX1hN124bjxYQGeU");
 
             Request requestGasStationsAndRestaurants = new Request.Builder()
@@ -84,7 +87,8 @@ public class RestaurantAndFuelStations {
                                 String name = fuelStation.getNameOfFuelStation();
                                 Double lat = hm.get("lat");
                                 Double lng = hm.get("lng");
-                                MarkerOptions marker = new MarkerOptions().position(new LatLng(lat, lng)).title(name);
+                                MarkerOptions marker = new MarkerOptions().position(new LatLng(lat, lng)).title(name).icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN));
+                                ;
                                 markerOptionsArrayList.add(marker);
                             }
                         }
@@ -95,16 +99,16 @@ public class RestaurantAndFuelStations {
                                 String name = restaurant.getNameOfRestaurant();
                                 Double lat = hm.get("lat");
                                 Double lng = hm.get("lng");
-                                MarkerOptions marker = new MarkerOptions().position(new LatLng(lat, lng)).title(name);
+                                MarkerOptions marker = new MarkerOptions().position(new LatLng(lat, lng)).title(name).icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_VIOLET));
                                 markerOptionsArrayList.add(marker);
                             }
                         }
-                        Log.v("my_taggg", "try markerOptionsArrayList size is: " + markerOptionsArrayList.size());
                     } catch (Exception e) {
                         Log.d("Exception", e.toString());
                     }
-                    myArrayListOfMarker.onEvent(markerOptionsArrayList);
-                    Log.v("my_taggg", "onResponse markerOptionsArrayList size is: " + markerOptionsArrayList.size());
+                    if (i == pointsAlongThePath.size()) {
+                        myArrayListOfMarker.onEvent(markerOptionsArrayList, idOfSelectedPolyIlne);
+                    }
 
                 }
                 @Override
@@ -112,12 +116,10 @@ public class RestaurantAndFuelStations {
 
                 }
             });
-            Log.v("my_taggg", "for markerOptionsArrayList size is: " + markerOptionsArrayList.size());
         }
-        Log.v("my_taggg", "return markerOptionsArrayList size is: " + markerOptionsArrayList.size());
     }
 
     public interface MyArrayListOfMarker {
-        void onEvent(ArrayList<MarkerOptions> markerOptionsArrayList);
+        void onEvent(ArrayList<MarkerOptions> markerOptionsArrayList, int idOfSelectedPolyIlne);
     }
 }

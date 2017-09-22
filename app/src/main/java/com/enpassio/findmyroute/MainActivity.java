@@ -39,6 +39,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Random;
 
 import okhttp3.Call;
 import okhttp3.Callback;
@@ -77,6 +78,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     ArrayList<Integer> distanceList;
     PolylineOptions shortestPolylineOptions;
     PolylineOptions selectedPolyLine;
+
+    MarkerOptions fromLocationMarker;
+    MarkerOptions toLocationMarker;
+
+    ArrayList<MarkerOptions> markerOptionsArrayListRetrieved;
+    int idOfSelectedPolyLine;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -176,8 +183,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
                 m_map.clear();
                 distanceList.clear();
-                MarkerOptions fromLocationMarker = new MarkerOptions().position(new LatLng(fromLat, fromLong)).title(fromLocation);
-                MarkerOptions toLocationMarker = new MarkerOptions().position(new LatLng(toLat, toLong)).title(toLocation);
+                fromLocationMarker = new MarkerOptions().position(new LatLng(fromLat, fromLong)).title(fromLocation);
+                toLocationMarker = new MarkerOptions().position(new LatLng(toLat, toLong)).title(toLocation);
 
                 m_map.addMarker(fromLocationMarker);
                 m_map.addMarker(toLocationMarker);
@@ -199,8 +206,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 /**create the camera with bounds and padding to set into map*/
                 final CameraUpdate cu = CameraUpdateFactory.newLatLngBounds(bounds, padding);
                 m_map.animateCamera(cu);
-
-                //TODO: handle routes using AsyncTask/Retrofit/OkHttp
                 try {
                     run();
                 } catch (IOException e) {
@@ -439,7 +444,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     public void onPolylineClick(Polyline polyline) {
         m_map.clear();
-        //   ArrayList<ArrayList<HashMap<String, Double>>>
+        m_map.addMarker(fromLocationMarker);
+        m_map.addMarker(toLocationMarker);
+        if (markerOptionsArrayListRetrieved != null) {
+            markerOptionsArrayListRetrieved.clear();
+        }
 
         for (int i = 0; i < polylineOptionsArrayList.size(); i++) {
             PolylineOptions polylineOptions = polylineOptionsArrayList.get(i);
@@ -455,7 +464,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
         if (selectedPolyLine != null) {
             m_map.addPolyline(selectedPolyLine).setColor(Color.RED);
-            RestaurantAndFuelStations.getRestaurantsAndFuelStationsAlongThePath(arrayList, fuelCheckBoxStatus, restaurantCheckBoxStatus, MainActivity.this);
+            final int min = 20;
+            final int max = 80;
+            Random random = new Random();
+            idOfSelectedPolyLine = random.nextInt((max - min) + 1) + min;
+            RestaurantAndFuelStations.getRestaurantsAndFuelStationsAlongThePath(arrayList, fuelCheckBoxStatus, restaurantCheckBoxStatus, MainActivity.this, idOfSelectedPolyLine);
         }
     }
 
@@ -495,17 +508,18 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     @Override
-    public void onEvent(final ArrayList<MarkerOptions> markerOptionsArrayList) {
+    public void onEvent(final ArrayList<MarkerOptions> markerOptionsArrayList, final int id) {
         if (selectedPolyLine != null) {
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
                     m_map.addPolyline(selectedPolyLine).setColor(Color.RED);
-                    ArrayList<MarkerOptions> markerOptionsArrayListRetrieved = markerOptionsArrayList;
-                    Log.v("my_tagggg", "size is: " + markerOptionsArrayList.size());
+                    markerOptionsArrayListRetrieved = markerOptionsArrayList;
                     for (int k = 0; k < markerOptionsArrayListRetrieved.size(); k++) {
-                        m_map.addMarker(markerOptionsArrayListRetrieved.get(k));
-                        Log.v("my_tagggggg", "marker lat is: " + String.valueOf(markerOptionsArrayList.get(k).getPosition().latitude));
+                        /* as there might be network delay so make sure thet you add marker if that's for selected polyline*/
+                        if (id == idOfSelectedPolyLine) {
+                            m_map.addMarker(markerOptionsArrayListRetrieved.get(k));
+                        }
                     }
                 }
             });
