@@ -346,6 +346,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         polylineOptionsArrayList = new ArrayList<>();
 
         int fasterRoute = distanceList.get(0);
+        int selectedRoute = 0;
         // Traversing through all the routes
         int width = 14;
         for (int i = 0; i < routes.size(); i++) {
@@ -369,11 +370,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             lineOptions.width(width);
 
 
+
             if (fasterRoute >= distanceList.get(i)) {
                 fasterRoute = distanceList.get(i);
                 shortestPolylineOptions = lineOptions;
+                selectedRoute = i;
             }
-
 
             lineOptions.color(Color.GRAY).width(width);
             width += 4;
@@ -401,6 +403,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 }
             }
         });
+
+        //show gas_station and restaurant for shortest route
+        selectedPolyLine = polylineOptionsArrayList.get(selectedRoute);
+        arrayList = hashMapOfAllRoutesStartAndEndLocation.get(selectedRoute);
+        final int min = 20;
+        final int max = 80;
+        Random random = new Random();
+        idOfSelectedPolyLine = random.nextInt((max - min) + 1) + min;
+        RestaurantAndFuelStations.getRestaurantsAndFuelStationsAlongThePath(arrayList, fuelCheckBoxStatus, restaurantCheckBoxStatus, MainActivity.this, idOfSelectedPolyLine);
     }
 
     @Override
@@ -517,6 +528,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     @Override
     public void onEvent(final ArrayList<MarkerOptions> markerOptionsArrayList, final int id) {
+        Log.v("my_tag", "onEvent called: ");
         if (selectedPolyLine != null) {
             runOnUiThread(new Runnable() {
                 @Override
