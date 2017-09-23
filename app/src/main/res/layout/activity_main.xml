@@ -19,18 +19,28 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:background="@drawable/input_shape"
             android:orientation="horizontal">
 
             <Button
                 android:id="@+id/from_place"
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
+                android:layout_weight="1.5"
+                android:gravity="center"
                 android:text="from" />
 
             <TextView
                 android:id="@+id/from_location"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent" />
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="5"
+                android:fontFamily="sans-serif"
+                android:gravity="center_horizontal|center_vertical"
+                android:text="@string/origin_location_hint"
+                android:textColor="#ffffff"
+                android:textSize="16sp" />
+
         </LinearLayout>
     </android.support.v7.widget.CardView>
 
@@ -46,18 +56,28 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:background="@drawable/input_shape"
             android:orientation="horizontal">
 
             <Button
                 android:id="@+id/to_place"
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
+                android:layout_weight="1.5"
+                android:gravity="center"
                 android:text="to" />
 
             <TextView
                 android:id="@+id/to_location"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent" />
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="5"
+                android:fontFamily="sans-serif"
+                android:gravity="center_horizontal|center_vertical"
+                android:text="@string/destination_location_hint"
+                android:textColor="#ffffff"
+                android:textSize="16sp" />
+
         </LinearLayout>
     </android.support.v7.widget.CardView>
 
@@ -66,8 +86,12 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
+        android:background="@drawable/input_shape"
+        android:paddingLeft="4dp"
+        android:paddingRight="4dp"
         android:text="Routes Available"
-        android:textAllCaps="false" />
+        android:textAllCaps="false"
+        android:textColor="#ffffff" />
 
     <fragment
         android:id="@+id/map"

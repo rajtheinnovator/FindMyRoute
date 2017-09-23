@@ -59,4 +59,6 @@
     <string name="error_enter_job_profile">Enter job profile</string>
     <string name="erroe_enter_job_description">Enter drive details</string>
     <string name="action_signout">sign out</string>
+    <string name="origin_location_hint">Choose the origin location</string>
+    <string name="destination_location_hint">Choose the destination location</string>
 </resources>

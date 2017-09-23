@@ -7,6 +7,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.preference.PreferenceManager;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -14,6 +15,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.enpassio.findmyroute.utils.RestaurantAndFuelStations;
 import com.google.android.gms.common.GooglePlayServicesNotAvailableException;
@@ -187,6 +189,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 break;
             case R.id.routes_available:
 
+                if (TextUtils.isEmpty(fromLocation)) {
+                    Toast.makeText(MainActivity.this, "Please choose the origin", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                if (TextUtils.isEmpty(toLocation)) {
+                    Toast.makeText(MainActivity.this, "Please choose the destination", Toast.LENGTH_SHORT).show();
+                    return;
+                }
                 m_map.clear();
                 distanceList.clear();
                 fromLocationMarker = new MarkerOptions().position(new LatLng(fromLat, fromLong)).title(fromLocation);
