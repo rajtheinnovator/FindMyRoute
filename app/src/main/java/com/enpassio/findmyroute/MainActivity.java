@@ -36,6 +36,11 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -91,6 +96,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     ArrayList<MarkerOptions> markerOptionsArrayListRetrieved;
     int idOfSelectedPolyLine;
     FirebaseAuth mAuth;
+    List<LatLng> listOfPointsOfSelectedPath;
+    private FirebaseDatabase mFirebaseDatabase;
+    private DatabaseReference mDrivesDatabaseReference;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -113,6 +121,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         setupSharedPreferences();
         mAuth = FirebaseAuth.getInstance();
+
+        mFirebaseDatabase = FirebaseDatabase.getInstance();
+        mDrivesDatabaseReference = mFirebaseDatabase.getReference().child(getResources()
+                .getString(R.string.firebase_database_child_routes));
     }
 
     @Override
@@ -351,8 +363,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     private void drawPolyLine(List<List<HashMap<String, String>>> routes) {
-        ArrayList<LatLng> points;
 
+        ArrayList<LatLng> points;
         polylineOptionsArrayList = new ArrayList<>();
 
         int fasterRoute = distanceList.get(0);
@@ -378,7 +390,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             // Adding all the points in the route to LineOptions
             lineOptions.addAll(points);
             lineOptions.width(width);
-
 
 
             if (fasterRoute >= distanceList.get(i)) {
@@ -409,6 +420,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             public void run() {
                 if (shortestPolylineOptions != null) {
                     shortestPolylineOptions.color(Color.RED);
+                    listOfPointsOfSelectedPath = shortestPolylineOptions.getPoints();
                     m_map.addPolyline(shortestPolylineOptions);
                 }
             }
@@ -486,6 +498,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
             if (pointsLine.equals(pointsOptions)) {
                 selectedPolyLine = polylineOptions;
+                listOfPointsOfSelectedPath = selectedPolyLine.getPoints();
                 arrayList = hashMapOfAllRoutesStartAndEndLocation.get(i);
             }
             polylineOptions.color(Color.GRAY);
@@ -538,7 +551,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     @Override
     public void onEvent(final ArrayList<MarkerOptions> markerOptionsArrayList, final int id) {
-        Log.v("my_tag", "onEvent called: ");
         if (selectedPolyLine != null) {
             runOnUiThread(new Runnable() {
                 @Override
@@ -577,8 +589,37 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 Intent settingsIntent = new Intent(this, SettingsActivity.class);
                 startActivity(settingsIntent);
                 return true;
-            case R.id.action_share:
+            case R.id.action_save:
+                if (selectedPolyLine == null) {
+                    Toast.makeText(MainActivity.this, "Please select a route", Toast.LENGTH_SHORT).show();
+                    return true;
+                }
+                mDrivesDatabaseReference.push().setValue(listOfPointsOfSelectedPath);
+                return true;
+            case R.id.action_retrieve_saved_paths:
+                mDrivesDatabaseReference.addValueEventListener(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot dataSnapshot) {
+                        List<LatLng> latLngs = new ArrayList<LatLng>();
+                        List<List<LatLng>> path = new ArrayList<List<LatLng>>();
 
+                        for (DataSnapshot pointsArrayList : dataSnapshot.getChildren()) {
+                            for (DataSnapshot s : pointsArrayList.getChildren()) {
+                                String lat = String.valueOf(s.child("latitude").getValue());
+                                String lng = String.valueOf(s.child("longitude").getValue());
+                                latLngs.add(new LatLng(Double.parseDouble(lat), Double.parseDouble(lng)));
+                                Log.v("my_tag", "value is for " + s.child("latitude").getValue());
+                            }
+                            path.add(latLngs);
+                        }
+                    }
+
+                    @Override
+                    public void onCancelled(DatabaseError databaseError) {
+
+                    }
+                });
+                return true;
             default:
                 return super.onOptionsItemSelected(item);
         }

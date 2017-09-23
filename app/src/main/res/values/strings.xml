@@ -62,4 +62,6 @@
     <string name="origin_location_hint">Choose the origin location</string>
     <string name="destination_location_hint">Choose the destination location</string>
     <string name="action_save">save</string>
+    <string name="firebase_database_child_routes">Routes</string>
+    <string name="action_retrieve_saved_paths">retrieve saved paths</string>
 </resources>

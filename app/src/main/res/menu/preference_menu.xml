@@ -2,11 +2,16 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <item
-        android:id="@+id/action_share"
+        android:id="@+id/action_save"
         android:icon="@drawable/save"
         android:orderInCategory="100"
         android:title="@string/action_save"
         app:showAsAction="always" />
+    <item
+        android:id="@+id/action_retrieve_saved_paths"
+        android:orderInCategory="100"
+        android:title="@string/action_retrieve_saved_paths"
+        app:showAsAction="never" />
     <item
         android:id="@+id/action_settings"
         android:orderInCategory="100"
