@@ -577,6 +577,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 Intent settingsIntent = new Intent(this, SettingsActivity.class);
                 startActivity(settingsIntent);
                 return true;
+            case R.id.action_share:
+
             default:
                 return super.onOptionsItemSelected(item);
         }
