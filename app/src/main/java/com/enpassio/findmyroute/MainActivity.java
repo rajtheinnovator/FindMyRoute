@@ -97,6 +97,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     int idOfSelectedPolyLine;
     FirebaseAuth mAuth;
     List<LatLng> listOfPointsOfSelectedPath;
+    PolylineOptions lineOption;
+    Double fromLt;
+    Double fromLn;
+    Double toLt;
+    Double toLn;
     private FirebaseDatabase mFirebaseDatabase;
     private DatabaseReference mDrivesDatabaseReference;
 
@@ -363,7 +368,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     private void drawPolyLine(List<List<HashMap<String, String>>> routes) {
-
         ArrayList<LatLng> points;
         polylineOptionsArrayList = new ArrayList<>();
 
@@ -383,7 +387,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 double lat = Double.parseDouble(point.get("lat"));
                 double lng = Double.parseDouble(point.get("lng"));
                 LatLng position = new LatLng(lat, lng);
-
                 points.add(position);
             }
 
@@ -597,20 +600,61 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 mDrivesDatabaseReference.push().setValue(listOfPointsOfSelectedPath);
                 return true;
             case R.id.action_retrieve_saved_paths:
+
                 mDrivesDatabaseReference.addValueEventListener(new ValueEventListener() {
                     @Override
                     public void onDataChange(DataSnapshot dataSnapshot) {
-                        List<LatLng> latLngs = new ArrayList<LatLng>();
-                        List<List<LatLng>> path = new ArrayList<List<LatLng>>();
+                        ArrayList<LatLng> points;
+                        ArrayList<PolylineOptions> polylineOptionsArrayList = new ArrayList<PolylineOptions>();
+
 
                         for (DataSnapshot pointsArrayList : dataSnapshot.getChildren()) {
+                            points = new ArrayList<LatLng>();
+                            lineOption = new PolylineOptions();
+                            int looperToFindLastElementOfPolyLine = 0;
                             for (DataSnapshot s : pointsArrayList.getChildren()) {
                                 String lat = String.valueOf(s.child("latitude").getValue());
                                 String lng = String.valueOf(s.child("longitude").getValue());
-                                latLngs.add(new LatLng(Double.parseDouble(lat), Double.parseDouble(lng)));
-                                Log.v("my_tag", "value is for " + s.child("latitude").getValue());
+
+                                if (looperToFindLastElementOfPolyLine == 0) {
+                                    fromLt = Double.parseDouble(lat);
+                                    fromLn = Double.parseDouble(lng);
+                                }
+                                if (looperToFindLastElementOfPolyLine == pointsArrayList.getChildrenCount() - 1) {
+                                    toLt = Double.parseDouble(lat);
+                                    toLn = Double.parseDouble(lng);
+                                }
+
+
+                                LatLng position = new LatLng(Double.parseDouble(lat), Double.parseDouble(lng));
+                                points.add(position);
+                                looperToFindLastElementOfPolyLine += 1;
                             }
-                            path.add(latLngs);
+                            lineOption.addAll(points);
+                            polylineOptionsArrayList.add(lineOption);
+                            runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    if (m_map != null) {
+                                        m_map.addPolyline(lineOption).setGeodesic(true);
+                                    }
+                                }
+                            });
+
+                            /* code for zooming camera
+                             * Courtsey: https://stackoverflow.com/a/41761051/5770629
+                             */
+                            LatLngBounds.Builder builder = new LatLngBounds.Builder();
+                            builder.include(new LatLng(fromLt, fromLn));
+                            builder.include(new LatLng(toLt, toLn));
+                            /**initialize the padding for map boundary*/
+                            int padding = 150;
+                            /**create the bounds from latlngBuilder to set into map camera*/
+                            LatLngBounds bounds = builder.build();
+
+                            /**create the camera with bounds and padding to set into map*/
+                            final CameraUpdate cu = CameraUpdateFactory.newLatLngBounds(bounds, padding);
+                            m_map.animateCamera(cu);
                         }
                     }
 
