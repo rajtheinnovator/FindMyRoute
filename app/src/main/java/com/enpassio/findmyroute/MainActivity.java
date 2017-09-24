@@ -98,10 +98,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     FirebaseAuth mAuth;
     List<LatLng> listOfPointsOfSelectedPath;
     PolylineOptions lineOption;
-    Double fromLt;
-    Double fromLn;
-    Double toLt;
-    Double toLn;
     private FirebaseDatabase mFirebaseDatabase;
     private DatabaseReference mDrivesDatabaseReference;
 
@@ -110,7 +106,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         distanceList = new ArrayList<>();
-
+        arrayList = new ArrayList<>();
         Button fromPlaceButton = (Button) findViewById(R.id.from_place);
         Button toPlaceButton = (Button) findViewById(R.id.to_place);
         Button routesAvailable = (Button) findViewById(R.id.routes_available);
@@ -249,6 +245,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     void run() throws IOException {
+        Log.v("my_tag", "run runs");
 
         OkHttpClient client = new OkHttpClient();
 
@@ -275,7 +272,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 JSONArray jRoutes;
                 JSONArray jLegs;
                 JSONArray jSteps;
-
+                Log.v("my_tag", "onResponse runs");
                 hashMapOfAllRoutesStartAndEndLocation = new ArrayList<ArrayList<HashMap<String, Double>>>();
                 try {
                     jsonObject = new JSONObject(jsonData);
@@ -432,11 +429,16 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         //show gas_station and restaurant for shortest route
         selectedPolyLine = polylineOptionsArrayList.get(selectedRoute);
         arrayList = hashMapOfAllRoutesStartAndEndLocation.get(selectedRoute);
+        idOfSelectedPolyLine = generateUniqueIdForRoute();
+        RestaurantAndFuelStations.getRestaurantsAndFuelStationsAlongThePath(arrayList, fuelCheckBoxStatus, restaurantCheckBoxStatus, MainActivity.this, idOfSelectedPolyLine);
+    }
+
+    private int generateUniqueIdForRoute() {
         final int min = 20;
         final int max = 80;
         Random random = new Random();
         idOfSelectedPolyLine = random.nextInt((max - min) + 1) + min;
-        RestaurantAndFuelStations.getRestaurantsAndFuelStationsAlongThePath(arrayList, fuelCheckBoxStatus, restaurantCheckBoxStatus, MainActivity.this, idOfSelectedPolyLine);
+        return idOfSelectedPolyLine;
     }
 
     @Override
@@ -488,8 +490,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     public void onPolylineClick(Polyline polyline) {
         m_map.clear();
-        m_map.addMarker(fromLocationMarker);
-        m_map.addMarker(toLocationMarker);
+        if (m_map != null) {
+            m_map.addMarker(fromLocationMarker);
+            m_map.addMarker(toLocationMarker);
+        }
         if (markerOptionsArrayListRetrieved != null) {
             markerOptionsArrayListRetrieved.clear();
         }
@@ -509,10 +513,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
         if (selectedPolyLine != null) {
             m_map.addPolyline(selectedPolyLine).setColor(Color.RED);
-            final int min = 20;
-            final int max = 80;
-            Random random = new Random();
-            idOfSelectedPolyLine = random.nextInt((max - min) + 1) + min;
+            idOfSelectedPolyLine = generateUniqueIdForRoute();
             RestaurantAndFuelStations.getRestaurantsAndFuelStationsAlongThePath(arrayList, fuelCheckBoxStatus, restaurantCheckBoxStatus, MainActivity.this, idOfSelectedPolyLine);
         }
     }
@@ -617,36 +618,49 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                 String lng = String.valueOf(s.child("longitude").getValue());
 
                                 if (looperToFindLastElementOfPolyLine == 0) {
-                                    fromLt = Double.parseDouble(lat);
-                                    fromLn = Double.parseDouble(lng);
+                                    fromLat = Double.parseDouble(lat);
+                                    fromLong = Double.parseDouble(lng);
                                 }
                                 if (looperToFindLastElementOfPolyLine == pointsArrayList.getChildrenCount() - 1) {
-                                    toLt = Double.parseDouble(lat);
-                                    toLn = Double.parseDouble(lng);
+                                    toLat = Double.parseDouble(lat);
+                                    toLong = Double.parseDouble(lng);
                                 }
-
 
                                 LatLng position = new LatLng(Double.parseDouble(lat), Double.parseDouble(lng));
                                 points.add(position);
                                 looperToFindLastElementOfPolyLine += 1;
                             }
                             lineOption.addAll(points);
+                            lineOption.clickable(true);
+                            selectedPolyLine = lineOptions;
                             polylineOptionsArrayList.add(lineOption);
+                            idOfSelectedPolyLine = generateUniqueIdForRoute();
+                            fromLocationMarker = new MarkerOptions().position(new LatLng(fromLat, fromLong));
+                            toLocationMarker = new MarkerOptions().position(new LatLng(toLat, toLong));
+                            try {
+                                run();
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
+
                             runOnUiThread(new Runnable() {
                                 @Override
                                 public void run() {
                                     if (m_map != null) {
+                                        m_map.addMarker(fromLocationMarker);
+                                        m_map.addMarker(toLocationMarker);
                                         m_map.addPolyline(lineOption).setGeodesic(true);
                                     }
                                 }
                             });
 
+                            RestaurantAndFuelStations.getRestaurantsAndFuelStationsAlongThePath(arrayList, fuelCheckBoxStatus, restaurantCheckBoxStatus, MainActivity.this, idOfSelectedPolyLine);
                             /* code for zooming camera
                              * Courtsey: https://stackoverflow.com/a/41761051/5770629
                              */
                             LatLngBounds.Builder builder = new LatLngBounds.Builder();
-                            builder.include(new LatLng(fromLt, fromLn));
-                            builder.include(new LatLng(toLt, toLn));
+                            builder.include(new LatLng(fromLat, fromLong));
+                            builder.include(new LatLng(toLat, toLong));
                             /**initialize the padding for map boundary*/
                             int padding = 150;
                             /**create the bounds from latlngBuilder to set into map camera*/
