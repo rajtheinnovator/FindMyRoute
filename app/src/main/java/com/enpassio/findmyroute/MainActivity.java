@@ -253,20 +253,18 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         uriBuilder.appendQueryParameter("origin", "" + fromLat + "," + fromLong);
         uriBuilder.appendQueryParameter("destination", "" + toLat + "," + toLong);
-        uriBuilder.appendQueryParameter("key", "AIzaSyCKLmb7IjJc981itGdoCljydm73cBaUpkE");
+        uriBuilder.appendQueryParameter("key", "AIzaSyB-iknh4cmq7Rqtg-lZX1hN124bjxYQGeU");
         uriBuilder.appendQueryParameter("alternatives", "true");
 
         Request request = new Request.Builder()
                 .url(uriBuilder.toString())
                 .build();
-        Log.v("mmmm", "request is: " + request);
         client.newCall(request).enqueue(new Callback() {
 
             @Override
             public void onResponse(Call call, Response response) throws IOException {
 
                 String jsonData = response.body().string();
-                Log.v("mmmm", "jsonData is: " + jsonData);
                 JSONObject jsonObject;
                 List<List<HashMap<String, String>>> routes = new ArrayList<>();
                 JSONArray jRoutes;
