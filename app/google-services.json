@@ -1,21 +1,21 @@
 {
   "project_info": {
-    "project_number": "561161603604",
-    "firebase_url": "https://findmyroute-c190d.firebaseio.com",
-    "project_id": "findmyroute-c190d",
-    "storage_bucket": "findmyroute-c190d.appspot.com"
+    "project_number": "427725638628",
+    "firebase_url": "https://findmyroute-b4279.firebaseio.com",
+    "project_id": "findmyroute-b4279",
+    "storage_bucket": "findmyroute-b4279.appspot.com"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:561161603604:android:2802723f06ecf97c",
+        "mobilesdk_app_id": "1:427725638628:android:2802723f06ecf97c",
         "android_client_info": {
           "package_name": "com.enpassio.findmyroute"
         }
       },
       "oauth_client": [
         {
-          "client_id": "561161603604-q2855if4p9v597em5457pgmmn26i9lkn.apps.googleusercontent.com",
+          "client_id": "427725638628-3v43kag166ueeufh4a865qcgrg54om6l.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
             "package_name": "com.enpassio.findmyroute",
@@ -23,13 +23,21 @@
           }
         },
         {
-          "client_id": "561161603604-17nmtqh9ak2as449pvfjvtcnigr7i2jb.apps.googleusercontent.com",
+          "client_id": "427725638628-a9djd1t0dn7enhpk6lat6bpaujgn4uc6.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.enpassio.findmyroute",
+            "certificate_hash": "32e53bb2f24985abf32fd6ed18d05afa91bc43d2"
+          }
+        },
+        {
+          "client_id": "427725638628-p0itiirg6u4t81qq81n6ncig7m2i66l1.apps.googleusercontent.com",
           "client_type": 3
         }
       ],
       "api_key": [
         {
-          "current_key": "AIzaSyAWOwBogoGlxTY7LWO9cGA_hgFaK6Pve1c"
+          "current_key": "AIzaSyAQHlh9PZ9-CMXBj6XqpCp4tm3kX3B4alg"
         }
       ],
       "services": {
@@ -40,7 +48,7 @@
           "status": 2,
           "other_platform_oauth_client": [
             {
-              "client_id": "561161603604-17nmtqh9ak2as449pvfjvtcnigr7i2jb.apps.googleusercontent.com",
+              "client_id": "427725638628-p0itiirg6u4t81qq81n6ncig7m2i66l1.apps.googleusercontent.com",
               "client_type": 3
             }
           ]

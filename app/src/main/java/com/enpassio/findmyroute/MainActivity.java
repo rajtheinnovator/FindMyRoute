@@ -107,16 +107,19 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         setContentView(R.layout.activity_main);
         distanceList = new ArrayList<>();
         arrayList = new ArrayList<>();
+        /* Initialize views */
         Button fromPlaceButton = (Button) findViewById(R.id.from_place);
         Button toPlaceButton = (Button) findViewById(R.id.to_place);
         Button routesAvailable = (Button) findViewById(R.id.routes_available);
         fromLocationTextView = (TextView) findViewById(R.id.from_location);
         toLocationTextView = (TextView) findViewById(R.id.to_location);
 
+        //set clickListeners
         fromPlaceButton.setOnClickListener(this);
         toPlaceButton.setOnClickListener(this);
         routesAvailable.setOnClickListener(this);
 
+        //initialize map fragment
         MapFragment mapFragment = (MapFragment) getFragmentManager().findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
 
@@ -140,7 +143,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 fromLocationTextView.setText(place.getName().toString());
             } else if (resultCode == PlaceAutocomplete.RESULT_ERROR) {
                 Status status = PlaceAutocomplete.getStatus(this, data);
-                // TODO: Handle the error.
                 Log.i(TAG, status.getStatusMessage());
 
             } else if (resultCode == RESULT_CANCELED) {
@@ -158,7 +160,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 toLong = place.getLatLng().longitude;
             } else if (resultCode == PlaceAutocomplete.RESULT_ERROR) {
                 Status status = PlaceAutocomplete.getStatus(this, data);
-                // TODO: Handle the error.
                 Log.i(TAG, status.getStatusMessage());
 
             } else if (resultCode == RESULT_CANCELED) {
@@ -203,11 +204,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             case R.id.routes_available:
 
                 if (TextUtils.isEmpty(fromLocation)) {
-                    Toast.makeText(MainActivity.this, "Please choose the origin", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(MainActivity.this, getResources().getString(R.string.choose_origin), Toast.LENGTH_SHORT).show();
                     return;
                 }
                 if (TextUtils.isEmpty(toLocation)) {
-                    Toast.makeText(MainActivity.this, "Please choose the destination", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(MainActivity.this, getResources().getString(R.string.choose_destination), Toast.LENGTH_SHORT).show();
                     return;
                 }
                 m_map.clear();
@@ -245,8 +246,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     void run() throws IOException {
-        Log.v("my_tag", "run runs");
-
         OkHttpClient client = new OkHttpClient();
 
         Uri baseUri = Uri.parse(url);
@@ -272,7 +271,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 JSONArray jRoutes;
                 JSONArray jLegs;
                 JSONArray jSteps;
-                Log.v("my_tag", "onResponse runs");
                 hashMapOfAllRoutesStartAndEndLocation = new ArrayList<ArrayList<HashMap<String, Double>>>();
                 try {
                     jsonObject = new JSONObject(jsonData);
@@ -595,7 +593,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 return true;
             case R.id.action_save:
                 if (selectedPolyLine == null) {
-                    Toast.makeText(MainActivity.this, "Please select a route", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(MainActivity.this, getResources().getString(R.string.error_select_route), Toast.LENGTH_SHORT).show();
                     return true;
                 }
                 mDrivesDatabaseReference.push().setValue(listOfPointsOfSelectedPath);

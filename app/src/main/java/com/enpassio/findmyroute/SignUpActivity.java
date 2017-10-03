@@ -73,6 +73,10 @@ public class SignUpActivity extends AppCompatActivity {
         genderArray.add("Male");
         genderArray.add("Others");
         setupSpinner();
+
+        mFirebaseDatabase = FirebaseDatabase.getInstance();
+        mDrivesDatabaseReference = mFirebaseDatabase.getReference().child("userProfile");
+
     }
 
     @Override
@@ -112,45 +116,49 @@ public class SignUpActivity extends AppCompatActivity {
             return;
         }
         if (InternetConnectivity.isInternetConnected(SignUpActivity.this)) {
-            mAuth.createUserWithEmailAndPassword(email, password)
-                    .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
-                        @Override
-                        public void onComplete(@NonNull Task<AuthResult> task) {
-                            if (task.isSuccessful()) {
-
-                                gender = userGender;
-                                userEmailEditText.setText("");
-                                accountPasswordEditText.setText("");
-                                userNameEditText.setText("");
-                                userCityEditText.setText("");
-
-                                // Sign in success, update UI with the signed-in user's information
-                                FirebaseUser user = mAuth.getCurrentUser();
-                                // User is signed in
-                                // NOTE: this Activity should get open only when the user is not signed in, otherwise
-                                // the user will receive another verification email.
-                                mDrivesDatabaseReference = mFirebaseDatabase.getReference().child(getResources()
-                                        .getString(R.string.firebase_database_child_drives));
-                                UserProfile userProfile = new UserProfile(name, city, gender, email);
-                                mFirebaseDatabase.getReference().child("userProfile").child(user.getUid()).push().setValue(userProfile);
-
-                                sendEmailVerification(user);
-                                mAuth.signOut();
-                                startActivity(new Intent(SignUpActivity.this, LoginActivity.class));
-                                finish();
-
-                            } else {
-                                // If sign up fails, display a message to the user.
-                                Toast.makeText(SignUpActivity.this, getResources()
-                                                .getString(R.string.toast_problem_creating_account),
-                                        Toast.LENGTH_SHORT).show();
-                            }
-                        }
-                    });
+            SignUpWithEmailPassword(email, password, name, city);
         } else {
             Toast.makeText(SignUpActivity.this, getResources()
                     .getString(R.string.check_internet_connectivity), Toast.LENGTH_SHORT).show();
         }
+    }
+
+    public void SignUpWithEmailPassword(final String email, String password, final String name, final String city) {
+        mAuth.createUserWithEmailAndPassword(email, password)
+                .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
+                    @Override
+                    public void onComplete(@NonNull Task<AuthResult> task) {
+                        if (task.isSuccessful()) {
+                            Toast.makeText(SignUpActivity.this, getResources().getString(R.string.account_created_now_verify_it), Toast.LENGTH_LONG).show();
+
+                            // Sign in success, update UI with the signed-in user's information
+                            FirebaseUser user = mAuth.getCurrentUser();
+                            // User is signed in
+                            // NOTE: this Activity should get open only when the user is not signed in, otherwise
+                            // the user will receive another verification email.
+
+                            UserProfile userProfile = new UserProfile(name, city, gender, email);
+                            gender = userGender;
+                            userEmailEditText.setText("");
+                            accountPasswordEditText.setText("");
+                            userNameEditText.setText("");
+                            userCityEditText.setText("");
+
+                            mDrivesDatabaseReference.child(user.getUid()).push().setValue(userProfile);
+
+                            sendEmailVerification(user);
+                            startActivity(new Intent(SignUpActivity.this, LoginActivity.class));
+                            mAuth.signOut();
+                            finish();
+
+                        } else {
+                            // If sign up fails, display a message to the user.
+                            Toast.makeText(SignUpActivity.this, getResources()
+                                            .getString(R.string.toast_problem_creating_account),
+                                    Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                });
     }
 
     @OnClick(R.id.button_already_registered)

@@ -38,7 +38,6 @@ public class RestaurantAndFuelStations {
 
 
     public static void getRestaurantsAndFuelStationsAlongThePath(ArrayList<HashMap<String, Double>> selectedPolyLinePoints, boolean fuelCheckBoxStatus, boolean restaurantCheckBoxStatus, Activity activity, final int idOfSelectedPolyIlne) {
-        Log.v("my_tag", "getRestaurantsAndFuelStationsAlongThePath called: ");
         mFuelCheckBoxStatus = fuelCheckBoxStatus;
         mRestaurantCheckBoxStatus = restaurantCheckBoxStatus;
         markerOptionsArrayList = new ArrayList<>();
@@ -119,7 +118,6 @@ public class RestaurantAndFuelStations {
             });
         }
     }
-
     public interface MyArrayListOfMarker {
         void onEvent(ArrayList<MarkerOptions> markerOptionsArrayList, int idOfSelectedPolyIlne);
     }
