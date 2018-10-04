@@ -108,15 +108,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         distanceList = new ArrayList<>();
         arrayList = new ArrayList<>();
         /* Initialize views */
-        Button fromPlaceButton = (Button) findViewById(R.id.from_place);
-        Button toPlaceButton = (Button) findViewById(R.id.to_place);
         Button routesAvailable = (Button) findViewById(R.id.routes_available);
         fromLocationTextView = (TextView) findViewById(R.id.from_location);
         toLocationTextView = (TextView) findViewById(R.id.to_location);
 
         //set clickListeners
-        fromPlaceButton.setOnClickListener(this);
-        toPlaceButton.setOnClickListener(this);
+        fromLocationTextView.setOnClickListener(this);
+        toLocationTextView.setOnClickListener(this);
         routesAvailable.setOnClickListener(this);
 
         //initialize map fragment
@@ -171,7 +169,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     public void onClick(View view) {
         switch (view.getId()) {
-            case R.id.from_place:
+            case R.id.from_location:
                 try {
                     AutocompleteFilter india = new AutocompleteFilter.Builder()
                             .setCountry("IN")
@@ -186,7 +184,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 } catch (GooglePlayServicesNotAvailableException e) {
                 }
                 break;
-            case R.id.to_place:
+            case R.id.to_location:
                 try {
                     AutocompleteFilter india = new AutocompleteFilter.Builder()
                             .setCountry("IN")
@@ -428,7 +426,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         });
 
         //show gas_station and restaurant for shortest route
-        selectedPolyLine = polylineOptionsArrayList.get(selectedRoute);
+        if (!!polylineOptionsArrayList.isEmpty() && polylineOptionsArrayList.size() > 0)
+            selectedPolyLine = polylineOptionsArrayList.get(selectedRoute);
         arrayList = hashMapOfAllRoutesStartAndEndLocation.get(selectedRoute);
         idOfSelectedPolyLine = generateUniqueIdForRoute();
         RestaurantAndFuelStations.getRestaurantsAndFuelStationsAlongThePath(arrayList, fuelCheckBoxStatus, restaurantCheckBoxStatus, MainActivity.this, idOfSelectedPolyLine);

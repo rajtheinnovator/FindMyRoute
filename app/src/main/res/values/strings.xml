@@ -39,8 +39,8 @@
     <string name="error_email_not_registered">Please check your email. Looks like you\'re not registered with us</string>
     <string name="button_reset_password">Reset Password</string>
     <string name="action_signout">sign out</string>
-    <string name="origin_location_hint">Choose the origin location</string>
-    <string name="destination_location_hint">Choose the destination location</string>
+    <string name="origin_location_hint">Click to choose the origin location</string>
+    <string name="destination_location_hint">Click to choose the destination location</string>
     <string name="action_save">save</string>
     <string name="firebase_database_child_routes">Routes</string>
     <string name="action_retrieve_saved_paths">retrieve saved paths</string>
