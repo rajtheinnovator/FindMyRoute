@@ -174,11 +174,18 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     AutocompleteFilter india = new AutocompleteFilter.Builder()
                             .setCountry("IN")
                             .build();
-                    Intent intent =
+                    final Intent intent =
                             new PlaceAutocomplete.IntentBuilder(PlaceAutocomplete.MODE_FULLSCREEN)
                                     .setFilter(india)
                                     .build(MainActivity.this);
-                    startActivityForResult(intent, FROM_PLACE_AUTOCOMPLETE_REQUEST_CODE);
+                    Thread t = new Thread() {
+                        public void run() {
+                            startActivityForResult(intent, FROM_PLACE_AUTOCOMPLETE_REQUEST_CODE);
+                        }
+                    };
+                    t.start();
+
+
                 } catch (GooglePlayServicesRepairableException e) {
 
                 } catch (GooglePlayServicesNotAvailableException e) {
@@ -189,11 +196,18 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     AutocompleteFilter india = new AutocompleteFilter.Builder()
                             .setCountry("IN")
                             .build();
-                    Intent intent =
+                    final Intent intent =
                             new PlaceAutocomplete.IntentBuilder(PlaceAutocomplete.MODE_FULLSCREEN)
                                     .setFilter(india)
                                     .build(MainActivity.this);
-                    startActivityForResult(intent, TO_PLACE_AUTOCOMPLETE_REQUEST_CODE);
+
+                    Thread t = new Thread() {
+                        public void run() {
+                            startActivityForResult(intent, TO_PLACE_AUTOCOMPLETE_REQUEST_CODE);
+                        }
+                    };
+                    t.start();
+
                 } catch (GooglePlayServicesRepairableException e) {
 
                 } catch (GooglePlayServicesNotAvailableException e) {
@@ -221,8 +235,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 m_map.moveCamera(CameraUpdateFactory.newCameraPosition(target));
 
                 /* code for zooming camera
-                * Courtsey: https://stackoverflow.com/a/41761051/5770629
-                */
+                 * Courtsey: https://stackoverflow.com/a/41761051/5770629
+                 */
                 LatLngBounds.Builder builder = new LatLngBounds.Builder();
                 builder.include(new LatLng(fromLat, fromLong));
                 builder.include(new LatLng(toLat, toLong));
@@ -251,8 +265,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         uriBuilder.appendQueryParameter("origin", "" + fromLat + "," + fromLong);
         uriBuilder.appendQueryParameter("destination", "" + toLat + "," + toLong);
-        uriBuilder.appendQueryParameter("key", "AIzaSyB-iknh4cmq7Rqtg-lZX1hN124bjxYQGeU");
-        //api key for abhishekraj@abhishekraj.me  ------>>  AIzaSyCKLmb7IjJc981itGdoCljydm73cBaUpkE
+        uriBuilder.appendQueryParameter("key", BuildConfig.GOOGLE_API_KEY_RAJTHEINNOVATOR_NEW);
         uriBuilder.appendQueryParameter("alternatives", "true");
 
         Request request = new Request.Builder()
@@ -599,6 +612,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     return true;
                 }
                 mDrivesDatabaseReference.push().setValue(listOfPointsOfSelectedPath);
+                Toast.makeText(MainActivity.this, getResources().getString(R.string.message_route_saved), Toast.LENGTH_SHORT).show();
                 return true;
             case R.id.action_retrieve_saved_paths:
 
