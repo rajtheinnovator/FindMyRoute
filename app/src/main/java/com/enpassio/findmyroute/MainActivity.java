@@ -692,6 +692,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     }
                 });
                 return true;
+            case R.id.action_privacy_policy:
+                startActivity(new Intent(this, PrivacyPolicyActivity.class));
+                return true;
+
             default:
                 return super.onOptionsItemSelected(item);
         }

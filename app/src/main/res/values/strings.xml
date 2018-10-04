@@ -50,4 +50,7 @@
     <string name="error_select_route">Please select a route</string>
     <string name="create_account_to_save_routes">To enable saving routes with us, please sigh up using Email !</string>
     <string name="message_route_saved">Route saved!</string>
+    <string name="action_privacy_policy">privacy policy</string>
+    <string name="privacy_policy_activity_label">Privacy Policy</string>
+    <string name="settings">Settings</string>
 </resources>
