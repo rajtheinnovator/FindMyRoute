@@ -271,7 +271,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         Request request = new Request.Builder()
                 .url(uriBuilder.toString())
                 .build();
-        Log.v("mmmm", "request is: " + request);
         client.newCall(request).enqueue(new Callback() {
 
             @Override
