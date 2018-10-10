@@ -6,7 +6,7 @@
         android:icon="@drawable/ic_save_black_24dp"
         android:orderInCategory="100"
         android:title="@string/action_save"
-        app:showAsAction="always" />
+        app:showAsAction="always|withText" />
     <item
         android:id="@+id/action_retrieve_saved_paths"
         android:orderInCategory="100"

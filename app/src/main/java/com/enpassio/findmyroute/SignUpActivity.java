@@ -10,6 +10,7 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ScrollView;
 import android.widget.Spinner;
 import android.widget.Toast;
 
@@ -48,6 +49,9 @@ public class SignUpActivity extends AppCompatActivity {
     @BindView(R.id.button_already_registered)
     Button logInButton;
 
+    @BindView(R.id.scroll_view)
+    ScrollView scrollView;
+
     @BindView(R.id.gender_toggle)
     Spinner genderSpinner;
     ArrayList<String> genderArray;
@@ -66,6 +70,10 @@ public class SignUpActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_sign_up);
         ButterKnife.bind(this);
+
+        // Hide the Scollbar
+        scrollView.setVerticalScrollBarEnabled(false);
+
         mAuth = FirebaseAuth.getInstance();
         mFirebaseDatabase = FirebaseDatabase.getInstance();
         genderArray = new ArrayList<>();

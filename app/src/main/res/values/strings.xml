@@ -53,4 +53,5 @@
     <string name="action_privacy_policy">privacy policy</string>
     <string name="privacy_policy_activity_label">Privacy Policy</string>
     <string name="settings">Settings</string>
+    <string name="click_route_first_to_save">Select the route and then click on save menu to save the route</string>
 </resources>

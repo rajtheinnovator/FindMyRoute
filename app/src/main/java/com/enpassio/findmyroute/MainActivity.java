@@ -223,6 +223,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     Toast.makeText(MainActivity.this, getResources().getString(R.string.choose_destination), Toast.LENGTH_SHORT).show();
                     return;
                 }
+                Toast.makeText(MainActivity.this, getResources().getString(R.string.click_route_first_to_save), Toast.LENGTH_LONG).show();
                 m_map.clear();
                 distanceList.clear();
                 fromLocationMarker = new MarkerOptions().position(new LatLng(fromLat, fromLong)).title(fromLocation);

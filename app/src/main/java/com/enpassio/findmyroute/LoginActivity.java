@@ -9,6 +9,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
+import android.widget.ScrollView;
 import android.widget.Toast;
 
 import com.enpassio.findmyroute.utils.InternetConnectivity;
@@ -46,6 +47,9 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
     @BindView(R.id.button_forgot_password)
     Button forgotPassword;
 
+    @BindView(R.id.scroll_view)
+    ScrollView scrollView;
+
     private FirebaseAuth mAuth;
 
     private String email;
@@ -74,6 +78,9 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         ButterKnife.bind(this);
         mAuth = FirebaseAuth.getInstance();
         mFirebaseDatabase = FirebaseDatabase.getInstance();
+
+        // Hide the Scollbar
+        scrollView.setVerticalScrollBarEnabled(false);
 
         if (mAuth.getCurrentUser() != null) {
             startActivity(new Intent(LoginActivity.this, MainActivity.class));
